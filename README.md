@@ -1,1 +1,1 @@
-# teacher_camp
+# teacherCamp
