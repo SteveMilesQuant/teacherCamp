@@ -1,0 +1,21 @@
+
+
+Create a project:
+	python3 -m virtualenv virt
+	source virt/bin/activate
+	python3 -m pip install fastapi
+	python3 -m pip install "uvicorn[standard]"
+	python3 -m pip install jinja2
+	python3 -m pip freeze > requirements.txt
+
+Working directory:
+	cd /mnt/c/Users/Steve/teacherCamp/
+	source virt/bin/activate
+
+Launch using uvicorn:
+	uvicorn main:app --reload
+
+Webpage:
+	http://127.0.0.1:8000/
+
+
