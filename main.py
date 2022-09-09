@@ -9,20 +9,18 @@ app.mount("/images", StaticFiles(directory="images"), name="images")
 templates = Jinja2Templates(directory="templates")
 api_router = APIRouter()
 
+def get_login_menu():
+    return {"login": "Log In"}
 
 @api_router.get("/", status_code = 200)
 async def read_homepage(request: Request):
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request, "login_menu": get_login_menu()})
 
 
 @api_router.get("/login", status_code = 200)
 async def read_login(request: Request):
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return templates.TemplateResponse("login.html", {"request": request, "login_menu": get_login_menu()})
 
-
-@api_router.get("/register", status_code = 200)
-async def read_register(request: Request):
-    return templates.TemplateResponse("auth/register.html", {"request": request})
 
 
 app.include_router(api_router)

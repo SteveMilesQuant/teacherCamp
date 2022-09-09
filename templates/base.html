@@ -5,18 +5,20 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
-<body>
+<body> <div id="whole-page">
 	<header class="banner">
-		<h1>Teacher Camp</h1>
-		<div class="dropdown">
+		<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu">
+		<a href="" ><img src="{{ url_for('images', path='/megducation.png') }}" alt="Megducation Logo" class="logo"></a>
+		<span class="dropdown">
 			<button class="dropbtn">
 				<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt="Log In/Out">
 		    </button>
 			<div class="dropdown-content">
-				<a href="login">Log In</a>
-				<a href="register">Register</a>
+				{% for target, label in login_menu.items() %}
+					<a href="{{target}}">{{label}}</a>
+				{% endfor %}
 			</div>
-		</div> 
+		</span>
 	</header>
 	<section class="content">
 		<header>
@@ -24,6 +26,13 @@
 		</header>
 		{% block content %}{% endblock %}
 	</section>
-</body>
+	<footer>
+		<nav class="footer-nav">
+			<a href="#" class="footer-nav-link">About Us</a>
+			<a href="#" class="footer-nav-link">Legal</a>
+			<a href="#" class="footer-nav-link">Contact</a>
+		</nav>
+	</footer>
+</div> </body>
 </html>
 
