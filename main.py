@@ -10,7 +10,7 @@ templates = Jinja2Templates(directory="templates")
 api_router = APIRouter()
 
 def get_login_menu():
-    return {"login": "Log In"}
+    return {"login": "Log In with Google"}
 
 @api_router.get("/", status_code = 200)
 async def read_homepage(request: Request):
