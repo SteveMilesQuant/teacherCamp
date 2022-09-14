@@ -1,15 +1,9 @@
 {% extends 'base.html' %}
 
-{% block header %}
-	<h1>{% block title %}Log In{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-	<form method="post">
-		<label for="username">Username</label>
-		<input name="username" id="username" required>
-		<label for="password">Password</label>
-		<input type="password" name="password" id="password" required>
-		<input type="submit" value="Log In">
-	</form>
+	{% if user_display_name is none %}
+		<p>You are no longer logged in. Please log in to continue (student's hat in upper right).</p>
+	{% else %}
+		<p>Logged in as {{user_display_name}}.</p>
+	{% endif %}
 {% endblock %}

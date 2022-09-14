@@ -6,6 +6,8 @@ Create a project:
 	python3 -m pip install fastapi
 	python3 -m pip install "uvicorn[standard]"
 	python3 -m pip install jinja2
+	python3 -m pip install oauthlib
+	python3 -m pip install aiohttp
 	python3 -m pip freeze > requirements.txt
 
 Working directory:
@@ -16,6 +18,16 @@ Launch using uvicorn:
 	uvicorn main:app --reload
 
 Webpage:
-	http://127.0.0.1:39854/
+	http://127.0.0.1:8000/
 
+Hacky way of getting public interface for OAuth2 credentials:
+	Edit C:\Windows\System32\drivers\etc\hosts with:
+	127.65.43.21     megducationcamps.com
+	netsh interface portproxy add v4tov4 listenport=80 listenaddress=127.65.43.21 connectport=8000 connectaddress=127.0.0.1
+	netsh interface portproxy delete v4tov4 listenport=80 listenaddress=127.65.43.21
+	http://megducationcamps.com
+
+Resources:
+	https://realpython.com/flask-google-login/
+	https://github.com/encode/starlette/blob/master/starlette/requests.py
 

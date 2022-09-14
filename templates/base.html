@@ -7,29 +7,34 @@
 </head>
 <body> <div id="whole-page">
 	<header class="banner">
-		<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu">
+		{% if user_display_name is none %}
+			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu hide">
+		{% else %}
+			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu">
+		{% endif %}
 		<a href="" ><img src="{{ url_for('images', path='/megducation.png') }}" alt="Megducation Logo" class="logo"></a>
 		<span class="dropdown">
 			<button class="dropbtn">
-				<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt="Log In/Out">
+				<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt="Sign In/Out">
 		    </button>
 			<div class="dropdown-content">
-				{% for target, label in login_menu.items() %}
-					<a href="{{target}}">{{label}}</a>
-				{% endfor %}
+				{% if user_display_name is none %}
+					<a href="signin" class="dropdown-item">Sign in with Google</a>
+				{% else %}
+					<div class="dropdown-item">{{user_display_name}}</div>
+					<hr class="solid">
+					<a href="signout" class="dropdown-item">Sign out</a>
+				{% endif %}
 			</div>
 		</span>
 	</header>
 	<section class="content">
-		<header>
-			{% block header %}{% endblock %}
-		</header>
 		{% block content %}{% endblock %}
 	</section>
 	<footer>
 		<nav class="footer-nav">
 			<a href="#" class="footer-nav-link">About</a>
-			<a href="#" class="footer-nav-link">Legal</a>
+			<a href="" class="footer-nav-link">Home</a>
 			<a href="#" class="footer-nav-link">Contact</a>
 		</nav>
 	</footer>
