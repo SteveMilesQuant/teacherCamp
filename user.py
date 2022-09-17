@@ -40,17 +40,26 @@ class User(BaseModel):
         else:
             return False
 
-    def save(self):
+    def create(self):
         insert_stmt = f'''
             INSERT INTO user (id, given_name, family_name, full_name, primary_email, picture)
                 VALUES ({self.id}, "{self.given_name}", "{self.family_name}", "{self.full_name}", "{self.primary_email}", "{self.picture}");
         '''
         db.execute_write(self.db, insert_stmt)
 
+    def update(self):
+        update_stmt = f'''
+            UPDATE user
+                SET given_name="{self.given_name}", family_name="{self.family_name}",
+                    full_name="{self.full_name}", primary_email="{self.primary_email}", picture="{self.picture}"
+                WHERE id = {self.id};
+        '''
+        db.execute_write(self.db, update_stmt)
+
     def __init__(self, **data):
         super().__init__(**data)
         if not self.load():
-            self.save()
+            self.create()
 
 
 

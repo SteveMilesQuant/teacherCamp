@@ -25,7 +25,7 @@ GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configura
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 
-async def get_google_provider_cfg():
+async def get_google_provider_cfg() -> dict:
     ret_json = {}
     async with aiohttp.ClientSession() as session:
         async with session.get(GOOGLE_DISCOVERY_URL) as response:
@@ -94,7 +94,6 @@ async def signin_callback_get(request: Request, code):
             picture = user_info_json["picture"],
             db = app.db
         )
-            
     else:
         return "User email not available or not verified by Google.", 400
     return RedirectResponse(url='/')
@@ -109,7 +108,7 @@ async def signout_get(request: Request):
 @app.on_event("shutdown")
 async def shutdown() -> None:
     db.close_db(app)
-    if os.path.isfile(app.db_path):
+    if os.environ.get("DEV_MODE") and os.path.isfile(app.db_path):
         os.remove(app.db_path)
 
 
