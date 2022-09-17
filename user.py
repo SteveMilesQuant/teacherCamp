@@ -65,7 +65,7 @@ class User(BaseModel):
         result = db.execute_read(self.db, select_stmt)
         self.roles.clear()
         for row in result:
-            role_enum = Role(row['role'])
+            role_enum = Role[row['role']]
             self.roles.append(role_enum)
 
         self.update_permissible_endpoints()
@@ -82,7 +82,7 @@ class User(BaseModel):
         self.roles.append(Role.GUARDIAN)
         insert_stmt = f'''
             INSERT INTO user_x_roles (id, role)
-                VALUES ({self.id}, "{Role.GUARDIAN}");
+                VALUES ({self.id}, "{Role.GUARDIAN.name}");
         '''
         db.execute_write(self.db, insert_stmt)
 
