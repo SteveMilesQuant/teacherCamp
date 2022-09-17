@@ -95,9 +95,6 @@ footer {
 
 .dropdown:hover .dropbtn {background-color: #f1f1f1;}
 
-hr.solid {
-  border-top: 2px solid #bbb;
-  padding: 0;
-}
+.border-bottom {border-bottom: 2px solid #bbb;}
 
-.hide { opacity: 0; }
+.hide {opacity: 0;}

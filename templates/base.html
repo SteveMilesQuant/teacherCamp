@@ -7,7 +7,7 @@
 </head>
 <body> <div id="whole-page">
 	<header class="banner">
-		{% if user_display_name is none %}
+		{% if user_id is none %}
 			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu hide">
 		{% else %}
 			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu">
@@ -18,11 +18,10 @@
 				<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt="Sign In/Out">
 		    </button>
 			<div class="dropdown-content">
-				{% if user_display_name is none %}
+				{% if user_id is none %}
 					<a href="signin" class="dropdown-item">Sign in with Google</a>
 				{% else %}
-					<div class="dropdown-item">{{user_display_name}}</div>
-					<hr class="solid">
+					<div class="dropdown-item border-bottom">{{user_name}}</div>
 					<a href="signout" class="dropdown-item">Sign out</a>
 				{% endif %}
 			</div>

@@ -1,2 +1,5 @@
 /virt
 **/__pycache__
+*.pem
+mkcert*
+*.db
