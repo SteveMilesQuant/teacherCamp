@@ -112,4 +112,67 @@ async def shutdown() -> None:
         os.remove(app.db_path)
 
 
+def resolve_auth_endpoint(request: Request, tgt_html: str, template_args: dict):
+    if not app.user:
+        return templates.TemplateResponse('login.html', template_args)
+    elif request.url.path not in app.user.permissible_endpoints:
+        return f"User does not have permission for {request.url.path}", 400
+    else:
+        return templates.TemplateResponse(tgt_html, template_args)
+
+
+@api_router.get("/programs/find")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "find_programs.html", template_args)
+
+
+@api_router.get("/programs/enrolled")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "enrolled_programs.html", template_args)
+
+
+@api_router.get("/students")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "students.html", template_args)
+
+
+@api_router.get("/programs/teach")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "teach_programs.html", template_args)
+
+
+@api_router.get("/programs/design")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "design_programs.html", template_args)
+
+
+@api_router.get("/members")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "members.html", template_args)
+
+
+@api_router.get("/database")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "database.html", template_args)
+
+
+@api_router.get("/programs/location")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "program_locations.html", template_args)
+
+
+@api_router.get("/programs/schedule")
+async def programs_find_get(request: Request):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "program_scheduling.html", template_args)
+
+
 app.include_router(api_router)

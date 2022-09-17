@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	{% if user_display_name is none %}
+	{% if user_id is none %}
 		<p>You are no longer logged in. Please log in to continue (student's hat in upper right).</p>
 	{% else %}
-		<p>Logged in as {{user_display_name}}.</p>
+		<p>Logged in as {{user_name}}.</p>
 	{% endif %}
 {% endblock %}
