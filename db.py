@@ -22,27 +22,17 @@ def close_db(app: FastAPI):
     app.db = None
 
 
-def load_user(db: sqlite3.Connection, user_id: int):
-    user = None
-    cursor = db.execute(f'SELECT id, given_name, family_name, full_name, primary_email, picture FROM user WHERE id = {user_id}')
-    row = cursor.fetchone()
-    if row is not None:
-        user = User(
-            id = row[0],
-            given_name = row[1],
-            family_name = row[2],
-            full_name = row[3],
-            primary_email = row[4],
-            picture = row[5]
-        )
-    return user
+def execute_read(db: sqlite3.Connection, stmt: str):
+    cursor = db.execute(stmt)
+    cursor.row_factory = sqlite3.Row
+    rows = cursor.fetchall()
+    if len(rows) > 0:
+        return rows
+    else:
+        return None
 
 
-def save_user(db: sqlite3.Connection, user: User) -> None:
-    sql_string = f'''
-        INSERT INTO user (id, given_name, family_name, full_name, primary_email, picture)
-            VALUES ({user.id}, "{user.given_name}", "{user.family_name}", "{user.full_name}", "{user.primary_email}", "{user.picture}");
-    '''
-    db.execute(sql_string)
+def execute_write(db: sqlite3.Connection, stmt: str) -> None:
+    cursor = db.execute(stmt)
     db.commit()
 

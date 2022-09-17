@@ -19,7 +19,6 @@ app.db = db.get_db(app)
 templates = Jinja2Templates(directory="templates")
 api_router = APIRouter()
 
-
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
@@ -86,17 +85,15 @@ async def signin_callback_get(request: Request, code):
         async with session.get(uri, data=body) as response:
             user_info_json = await response.json()
     if user_info_json.get("email_verified"):
-        app.user = db.load_user(app.db, user_info_json["sub"])
-        if app.user is None:
-            app.user = User(
-                id = user_info_json["sub"],
-                given_name = user_info_json["given_name"],
-                family_name = user_info_json["family_name"],
-                full_name = user_info_json["name"],
-                primary_email = user_info_json["email"],
-                picture = user_info_json["picture"]
-            )
-            db.save_user(app.db, app.user)
+        app.user = User(
+            id = user_info_json["sub"],
+            given_name = user_info_json["given_name"],
+            family_name = user_info_json["family_name"],
+            full_name = user_info_json["name"],
+            primary_email = user_info_json["email"],
+            picture = user_info_json["picture"],
+            db = app.db
+        )
             
     else:
         return "User email not available or not verified by Google.", 400
