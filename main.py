@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
-from user import User
+from user import User, load_all_roles
 
 
 app = FastAPI()
@@ -15,6 +15,7 @@ app.user = None
 app.db = None
 app.db_path = os.environ.get("DB_PATH") or os.path.join(os.path.dirname(__file__), 'app.db')
 app.db = db.get_db(app)
+app.roles = load_all_roles(app.db)
 
 templates = Jinja2Templates(directory="templates")
 api_router = APIRouter()
@@ -38,9 +39,14 @@ async def build_base_html_args(request: Request) -> dict:
     if app.user is None:
         template_args['user_id'] = None
         template_args['user_name'] = None
+        template_args['roles'] = None
     else:
         template_args['user_id'] = app.user.id
         template_args['user_name'] = app.user.full_name
+        current_roles = []
+        for role_name in app.user.roles:
+            current_roles.append(app.roles[role_name])
+        template_args['roles'] = current_roles
     return template_args
 
 
@@ -115,10 +121,11 @@ async def shutdown() -> None:
 def resolve_auth_endpoint(request: Request, tgt_html: str, template_args: dict):
     if not app.user:
         return templates.TemplateResponse('login.html', template_args)
-    elif request.url.path not in app.user.permissible_endpoints:
-        return f"User does not have permission for {request.url.path}", 400
-    else:
-        return templates.TemplateResponse(tgt_html, template_args)
+    for role_name in app.user.roles:
+        role = app.roles[role_name]
+        if request.url.path in role.permissible_endpoints:
+            return templates.TemplateResponse(tgt_html, template_args)
+    return f"User does not have permission for {request.url.path}", 400
 
 
 @api_router.get("/programs/find")

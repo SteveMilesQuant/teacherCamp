@@ -16,7 +16,6 @@ footer {
 .footer-nav {
 	height: 50%;
 	padding: 11px;
-	position: relative;
 	position: absolute;
     top: 33%;
     left: 50%;
@@ -38,12 +37,40 @@ footer {
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
-.hamburger-menu {
+.hamburger-button {
+	padding: 0;
+	height: 32px;
 	background: rgba(0,0,0,0);
-	height: 50%;
+	border: none;
+}
+.hamburger-image {
+	background: rgba(0,0,0,0);
+	height: 32px;
 	padding: 16px;
 	position: relative;
 }
+.hamburger-nav {
+	background: white;
+	position: absolute;
+	display: inline-block;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	height: 100%;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	max-width: 128px;
+	border: 2px solid black;
+	transition: 0.5s;
+}
+.hamburger-nav-role {
+	padding: 16px;
+}
+.hamburger-nav-role-link {
+	padding: 16px;
+	padding-left: 32px;
+}
+.hamburger-nav-role-link a {text-decoration: none;}
+.hamburger-nav-role-link:hover { background-color: #ddd; }
 
 .logo {
 	background: rgba(0,0,0,0);
@@ -58,7 +85,6 @@ footer {
 	border-radius: 50%;
 	border: none;
 }
-
 .dropdown {
 	position: relative;
 	display: inline-block;
@@ -68,7 +94,6 @@ footer {
 	padding-right: 16px;
 	float: right;
 }
-
 .dropdown-content {
 	display: none;
 	position: absolute;
@@ -80,7 +105,6 @@ footer {
 	right: 16px;
 	font-size: 16px;
 }
-
 .dropdown-item {
 	padding: 16px;
 	text-decoration: none;
@@ -88,13 +112,12 @@ footer {
 	border-radius: 10%;
 	border: none;
 }
-
 .dropdown-content a:hover {background-color: #ddd; border-radius: 10%;}
-
 .dropdown:hover .dropdown-content {display: block;}
-
 .dropdown:hover .dropbtn {background-color: #f1f1f1;}
 
 .border-bottom {border-bottom: 2px solid #bbb;}
 
 .hide {opacity: 0;}
+
+.content { position: relative; height: 100%; width: 100%; padding: 16px; }

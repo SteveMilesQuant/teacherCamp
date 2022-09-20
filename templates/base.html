@@ -8,11 +8,11 @@
 <body> <div id="whole-page">
 	<header class="banner">
 		{% if user_id is none %}
-			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu hide">
+			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Navigation Menu (hidden)" class="hamburger-image hide">
 		{% else %}
-			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Log In/Out" class="hamburger-menu">
+			<button class="hamburger-button"><img src="{{ url_for('images', path='/hamburger.png') }}" alt="Navigation Menu" class="hamburger-image"></button>
 		{% endif %}
-		<a href="" ><img src="{{ url_for('images', path='/megducation.png') }}" alt="Megducation Logo" class="logo"></a>
+		<a href="/" ><img src="{{ url_for('images', path='/megducation.png') }}" alt="Company Logo" class="logo"></a>
 		<span class="dropdown">
 			<button class="dropbtn">
 				<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt="Sign In/Out">
@@ -27,13 +27,25 @@
 			</div>
 		</span>
 	</header>
+	<section class="hambuger-nav">
+		{% if user_id is not none %}
+			{% for role in roles %}
+				<div class="hamburger-nav-role">
+					{% if roles|length > 1 %} <p>{{role.name|title}}</p> {% endif %}
+					{% for link_tgt, link_label in role.permissible_endpoints.items() %}
+						<div class="hamburger-nav-role-link"><a href="{{link_tgt}}">{{link_label}}</a></div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+		{% endif %}
+	</section>
 	<section class="content">
 		{% block content %}{% endblock %}
 	</section>
 	<footer>
 		<nav class="footer-nav">
 			<a href="#" class="footer-nav-link">About</a>
-			<a href="" class="footer-nav-link">Home</a>
+			<a href="/" class="footer-nav-link">Home</a>
 			<a href="#" class="footer-nav-link">Contact</a>
 		</nav>
 	</footer>
