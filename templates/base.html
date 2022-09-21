@@ -1,54 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-	<title>{% block title %}{% endblock %} - Teacher Camp</title>
-	<meta charset="UTF-8">
-	<link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+  <title>{% block title %}{% endblock %} - Teacher Camp</title>
+  <meta charset='UTF-8'>
+  <link rel='stylesheet' href="{{ url_for('static', path='/style.css') }}">
 </head>
-<body> <div id="whole-page">
-	<header class="banner">
-		{% if user_id is none %}
-			<img src="{{ url_for('images', path='/hamburger.png') }}" alt="Navigation Menu (hidden)" class="hamburger-image hide">
-		{% else %}
-			<button class="hamburger-button"><img src="{{ url_for('images', path='/hamburger.png') }}" alt="Navigation Menu" class="hamburger-image"></button>
-		{% endif %}
-		<a href="/" ><img src="{{ url_for('images', path='/megducation.png') }}" alt="Company Logo" class="logo"></a>
-		<span class="dropdown">
-			<button class="dropbtn">
-				<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt="Sign In/Out">
-		    </button>
-			<div class="dropdown-content">
-				{% if user_id is none %}
-					<a href="signin" class="dropdown-item">Sign in with Google</a>
-				{% else %}
-					<div class="dropdown-item border-bottom">{{user_name}}</div>
-					<a href="signout" class="dropdown-item">Sign out</a>
-				{% endif %}
-			</div>
-		</span>
-	</header>
-	<section class="hambuger-nav">
-		{% if user_id is not none %}
-			{% for role in roles %}
-				<div class="hamburger-nav-role">
-					{% if roles|length > 1 %} <p>{{role.name|title}}</p> {% endif %}
-					{% for link_tgt, link_label in role.permissible_endpoints.items() %}
-						<div class="hamburger-nav-role-link"><a href="{{link_tgt}}">{{link_label}}</a></div>
-					{% endfor %}
+<body>
+<header class='banner'>
+  <div class='banner-item nav-button'>
+    <button class='hamburger-button' onclick='openNav()'>
+      <img src="{{ url_for('images', path='/hamburger.png') }}"
+           alt='Navigation Menu'
+           class='hamburger-image'/>
+    </button>
+  </div>
+  <div class='banner-item'>
+    <a href='/'><img src="{{ url_for('images', path='/megducation.png') }}" alt='Company Logo' class='logo'/></a>
+  </div>
+  <div class='banner-item banner-item-end'>
+      <span class='dropdown'>
+				<button class='dropbtn'>
+					<img src="{{ url_for('images', path='/graduation-hat.png') }}" alt='Sign In/Out'/>
+					</button>
+				<div class='dropdown-content'>
+					{% if user_id is none %}
+						<a href='signin' class='dropdown-item'>Sign in with Google</a>
+					{% else %}
+						<div class='dropdown-item border-bottom'>{{user_name}}</div>
+						<a href='signout' class='dropdown-item'>Sign out</a>
+					{% endif %}
 				</div>
-			{% endfor %}
-		{% endif %}
-	</section>
-	<section class="content">
-		{% block content %}{% endblock %}
-	</section>
-	<footer>
-		<nav class="footer-nav">
-			<a href="#" class="footer-nav-link">About</a>
-			<a href="/" class="footer-nav-link">Home</a>
-			<a href="#" class="footer-nav-link">Contact</a>
-		</nav>
-	</footer>
-</div> </body>
-</html>
+			</span>
+  </div>
+</header>
+<div class='content-container'>
+  <section class='hamburger-nav' id='mySidenav'>
+    <!--		{% if user_id is not none %}-->
+    <!--			{% for role in roles %}-->
+    <!--				<div class="hamburger-nav-role">-->
+    <!--					{% if roles|length > 1 %} <p>{{role.name|title}}</p> {% endif %}-->
+    <!--					{% for link_tgt, link_label in role.permissible_endpoints.items() %}-->
+    <!--						<div class="hamburger-nav-role-link"><a href="{{link_tgt}}">{{link_label}}</a></div>-->
+    <!--					{% endfor %}-->
+    <!--				</div>-->
+    <!--			{% endfor %}-->
+    <!--		{% endif %}-->
+    <div class='hamburger-nav-role'>
+      <div class='close-button-container'>
+        <button onclick='closeNav()'>Close</button>
+      </div>
+      <div class='hamburger-nav-role-link'><a href='/'>Link 1</a></div>
+      <div class='hamburger-nav-role-link'><a href='/'>Link 2</a></div>
+      <div class='hamburger-nav-role-link'><a href='/'>Link 3</a></div>
+      <div class='hamburger-nav-role-link'><a href='/'>Link 4</a></div>
+    </div>
+  </section>
+  <section class='content' id='main'>
+    {% block content %}{% endblock %}
+  </section>
+</div>
+<footer>
+  <nav class='footer-nav'>
+    <a href='#' class='footer-nav-link'>About</a>
+    <a href='/' class='footer-nav-link'>Home</a>
+    <a href='#' class='footer-nav-link'>Contact</a>
+  </nav>
+</footer>
+<script>
+  function openNav() {
+    document.getElementById('mySidenav').style.width = '400px';
+    document.getElementById('main').style.marginLeft = '400px';
+  }
 
+  function closeNav() {
+    document.getElementById('mySidenav').style.width = '0px';
+    document.getElementById('main').style.marginLeft = '0px';
+  }
+</script>
+</body>
+</html>
