@@ -1,6 +1,5 @@
 html * { font-size: 18px; font-family: Georgia; color: #757575; }
 html, body { margin: 0px; height: 100%; }
-#whole-page {min-height: 100%; overflow: hidden; position: relative;}
 
 footer {
 	background: lightblue;
@@ -30,19 +29,38 @@ footer {
 
 .banner {
 	background: lightblue;
-	display: inline-block;
+	display: flex;
 	align-items: center;
 	height: 64px;
 	width: 100%;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 }
 
+.banner-item {
+	height: 100%;
+}
+
+.banner-item-end {
+	margin-left: auto;
+}
+
+.nav-button {
+	margin-right: 16px;
+}
+
+.content-container {
+	display: flex;
+}
+
+
 .hamburger-button {
 	padding: 0;
 	height: 32px;
+	width: 32px;
 	background: rgba(0,0,0,0);
 	border: none;
 }
+.hamburger-button:hover { cursor: pointer; }
 .hamburger-image {
 	background: rgba(0,0,0,0);
 	height: 32px;
@@ -53,21 +71,20 @@ footer {
 	background: white;
 	position: absolute;
 	display: inline-block;
-	top: 0;
-	left: 0;
+	overflow-x: hidden;
+	top: 70px;
+	height: 90%;
+	left: -400px;
 	z-index: 2;
-	height: 100%;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-	max-width: 128px;
-	border: 2px solid black;
+	width: 400px;
 	transition: 0.5s;
 }
 .hamburger-nav-role {
-	padding: 16px;
+	padding: 20px 20px;
 }
 .hamburger-nav-role-link {
-	padding: 16px;
-	padding-left: 32px;
+	margin: 32px;
 }
 .hamburger-nav-role-link a {text-decoration: none;}
 .hamburger-nav-role-link:hover { background-color: #ddd; }
@@ -121,3 +138,4 @@ footer {
 .hide {opacity: 0;}
 
 .content { position: relative; height: 100%; width: 100%; padding: 16px; }
+#main { transition: 0.5s; }

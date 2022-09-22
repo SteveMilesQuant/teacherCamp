@@ -3,3 +3,4 @@
 *.pem
 mkcert*
 *.db
+./images/*
