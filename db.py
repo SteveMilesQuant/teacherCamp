@@ -34,4 +34,5 @@ def execute_read(db: sqlite3.Connection, stmt: str):
 def execute_write(db: sqlite3.Connection, stmt: str) -> None:
     cursor = db.execute(stmt)
     db.commit()
+    return cursor.lastrowid
 

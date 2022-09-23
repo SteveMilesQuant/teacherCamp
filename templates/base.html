@@ -73,6 +73,20 @@
       mainElem.style.marginLeft = width;
     }
   }
+  
+  function hideAndUnhide(classToHide, elemIdToUnhide) {
+    hideList = document.getElementsByClassName(classToHide);
+    for (let i = 0; i < hideList.length; i++) {
+      hideList[i].hidden = true;
+    }
+    unhideElem = document.getElementById(elemIdToUnhide);
+    unhideElem.hidden = false;
+  }
+  
+  function updateAction(elemId, action) {
+    elem = document.getElementById(elemId);
+    elem.action = action;
+  }
 </script>
 </body>
 </html>

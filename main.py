@@ -1,10 +1,10 @@
 import os, aiohttp, json, db
-from fastapi import FastAPI, Request, APIRouter
+from fastapi import FastAPI, Request, APIRouter, Form
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
-from user import User, load_all_roles
+from user import User, load_all_roles, Student
 
 
 app = FastAPI()
@@ -96,7 +96,7 @@ async def signin_callback_get(request: Request, code):
             given_name = user_info_json["given_name"],
             family_name = user_info_json["family_name"],
             full_name = user_info_json["name"],
-            primary_email = user_info_json["email"],
+            google_email = user_info_json["email"],
             picture = user_info_json["picture"],
             db = app.db
         )
@@ -118,12 +118,14 @@ async def shutdown() -> None:
         os.remove(app.db_path)
 
 
-def resolve_auth_endpoint(request: Request, tgt_html: str, template_args: dict):
+def resolve_auth_endpoint(request: Request, tgt_html: str, template_args: dict, permission_url_path = None):
     if not app.user:
         return templates.TemplateResponse('login.html', template_args)
+    if permission_url_path is None:
+        permission_url_path = request.url.path
     for role_name in app.user.roles:
         role = app.roles[role_name]
-        if request.url.path in role.permissible_endpoints:
+        if permission_url_path in role.permissible_endpoints:
             return templates.TemplateResponse(tgt_html, template_args)
     return f"User does not have permission for {request.url.path}", 400
 
@@ -148,14 +150,53 @@ async def programs_enrolled_get(request: Request):
     return resolve_auth_endpoint(request, "enrolled_programs.html", template_args)
 
 
-@api_router.get("/students")
-async def students_get(request: Request):
+async def students_get(request: Request, selected_id = None):
     template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "students.html", template_args)
+    student_names = {}
+    current_student = None
 
+    if app.user is not None:
+        if selected_id is not None:
+            if selected_id in app.user.student_ids:
+                current_student = Student(db = app.db, id = selected_id)
+        for student_id in app.user.student_ids:
+            student_names[student_id] = Student(db = app.db, id = student_id).name # this is readable, but maybe it should be more efficient
+    template_args['student_names'] = student_names
+    template_args['current_student'] = current_student
+    return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
+
+async def student_add_or_update(student_id = None, student_name = ""):
+    if app.user is not None:
+        student = Student(db = app.db, id = student_id, name = student_name)
+        if student_id is not None:
+            student.name = student_name
+            student.update()
+        if student.id not in app.user.student_ids:
+            app.user.student_ids.append(student.id)
+            app.user.update()
+        return student.id
+    return None
+
+@api_router.get("/students")
+async def students_get_all(request: Request):
+    return await students_get(request=request, selected_id=None)
+
+@api_router.get("/students/{student_id}")
+async def students_get_one(request: Request, student_id: int):
+    return await students_get(request=request, selected_id=student_id)
+
+@api_router.post("/students")
+async def student_post(request: Request, student_name: str = Form()):
+    student_id = await student_add_or_update(student_id = None, student_name = student_name)
+    return await students_get(request=request, selected_id=student_id)
+    
+@api_router.post("/students/{student_id}")
+async def student_post(request: Request, student_id: int, student_name: str = Form()):
+    student_id = await student_add_or_update(student_id = student_id, student_name = student_name)
+    return await students_get(request=request, selected_id=student_id)
 
 @api_router.get("/programs/teach")
-async def programs_teacb_get(request: Request):
+async def programs_teach_get(request: Request):
     template_args = await build_base_html_args(request)
     return resolve_auth_endpoint(request, "teach_programs.html", template_args)
 

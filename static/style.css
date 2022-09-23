@@ -83,7 +83,7 @@ footer {
 	height: 90%;
 	left: -400px;
 	z-index: 2;
-	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	box-shadow: 0px 8px 16px 4px rgba(0,0,0,0.2);
 	width: 400px;
 	transition: 0.5s;
 }
@@ -148,11 +148,12 @@ footer {
 
 
 #main { transition: 0.5s; }
-.content-container {
-	display: flex;
-}
-.content { position: relative; height: 100%; width: 100%; padding: 16px; }
-
+.content-container { display: flex; height: 100%; width: 100%; }
+.content { height: 100%; width: 100%; display: flex; margin: 0px }
+.sidebar { position: relative; top: 6px; height: 90%; box-shadow: 0px 4px 16px 3px rgba(0,0,0,0.2); }
+.sidebar-item { margin: 32px; }
+.text-button { height: 28px; text-align: center; line-height: 100%; }
+.content-body { height: 100%; margin: 32px; }
 
 .divider { border-bottom: 2px solid #bbb; padding: 0px; margin: 0px; }
 

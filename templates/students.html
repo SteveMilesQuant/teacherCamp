@@ -1,5 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	<p>You are a guardian editing the students you are responsible for.</p>
+  <span class='sidebar'>
+    {% for id, name in student_names.items() %}
+      <div class='sidebar-item'><a href="/students/{{id}}">{{name}}</a></div>
+    {% endfor %}
+    <div class='sidebar-item'><button class='text-button' onclick="hideAndUnhide('content-body', 'student-form'); updateAction('student-form', '/students');">+</button></div>
+  </span>
+  <span class='content-body' id='display-student'>
+    {% if current_student is not none %}
+      <div>Name={{current_student.name}}</div>
+      <div>Birthdate={{current_student.birthdate}}</div>
+      <div>School={{current_student.school}}</div>
+      <div><button onclick="hideAndUnhide('content-body', 'student-form'); updateAction('student-form', '/students/{{current_student.id}}');">Update</button></div>
+    {% endif %}
+  </span>
+  <form class='content-body' hidden id='student-form' method='post'>
+    <label for='student_name'>Name:</label>
+    <input type='text' id='student-name' name='student_name'>
+    <input type='submit' value='Submit' >
+    <input type='button' value='Cancel' onclick="hideAndUnhide('content-body', 'display-student')">
+  </form>
 {% endblock %}
+
+

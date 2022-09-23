@@ -8,6 +8,7 @@ Create a project:
 	python3 -m pip install jinja2
 	python3 -m pip install oauthlib
 	python3 -m pip install aiohttp
+	python3 -m pip install python-multipart
 	python3 -m pip freeze > requirements.txt
 
 Working directory:
