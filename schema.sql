@@ -29,7 +29,6 @@ INSERT INTO role_permissions (role, endpoint, endpoint_title) VALUES
 	("INSTRUCTOR",	"/programs/design",		"Design Programs"),
 	("ADMIN",		"/members",				"Manage Members"),
 	("ADMIN",		"/database",			"Manage Database"),
-	("ADMIN",		"/programs/location",	"Edit Program Locations"),
 	("ADMIN",		"/programs/schedule",	"Schedule Programs");
 
 
