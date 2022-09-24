@@ -43,9 +43,9 @@
   </span>
   <form class='content-body' hidden id='student-form' method='post' action='/students'>
     <label for='student_name'>Name:</label>
-    <input type='text' name='student_name'><br>
+    <input type='text' name='student_name' required><br>
     <label for='student_birthdate'>Birthdate:</label>
-    <input type='date' name='student_birthdate'><br>
+    <input type='date' name='student_birthdate' required><br>
     <input type='submit' value='Submit' >
     <input type='button' value='Cancel' onclick="unhideInClass('content-body', 'display-student')">
   </form>

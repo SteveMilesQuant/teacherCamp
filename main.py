@@ -93,7 +93,7 @@ async def signin_callback_get(request: Request, code):
             user_info_json = await response.json()
     if user_info_json.get("email_verified"):
         app.user = User(
-            id = user_info_json["sub"],
+            google_id = user_info_json["sub"],
             given_name = user_info_json["given_name"],
             family_name = user_info_json["family_name"],
             full_name = user_info_json["name"],

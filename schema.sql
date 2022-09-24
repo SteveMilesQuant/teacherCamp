@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS user;
 CREATE TABLE user (
-	id BIGINT PRIMARY KEY,
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	google_id BIGINT NOT NULL,
 	given_name TEXT,
 	family_name TEXT,
 	full_name TEXT,
@@ -26,7 +27,7 @@ INSERT INTO role_permissions (role, endpoint, endpoint_title) VALUES
 
 DROP TABLE IF EXISTS user_x_roles;
 create table user_x_roles (
-	user_id BIGINT NOT NULL,
+	user_id INTEGER NOT NULL,
 	role TEXT,
 	FOREIGN KEY (user_id) REFERENCES user(id)
 );
@@ -41,7 +42,7 @@ create table student (
 
 DROP TABLE IF EXISTS user_x_students;
 create table user_x_students (
-	user_id BIGINT NOT NULL,
+	user_id INTEGER NOT NULL,
 	student_id INTEGER NOT NULL,
 	FOREIGN KEY (user_id) REFERENCES user(id)
 	FOREIGN KEY (student_id) REFERENCES student(id)

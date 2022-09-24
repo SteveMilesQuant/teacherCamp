@@ -98,7 +98,8 @@ class Student(BaseModel):
 
 
 class User(BaseModel):
-    id: int
+    id: Optional[int] = None  # we use AUTOMATICINCREMENT on create, so this wouldn't be necessary then
+    google_id: Optional[int]
     given_name: str
     family_name: str
     full_name: str
@@ -109,15 +110,27 @@ class User(BaseModel):
     student_ids: Optional[List[int]] = []
 
     def load(self) -> bool:
-        select_stmt = f'''
-            SELECT *
-                FROM user
-                WHERE id = {self.id}
-        '''
-        result = execute_read(self.db, select_stmt)
+        if self.id is None:
+            select_stmt = f'''
+                SELECT *
+                    FROM user
+                    WHERE google_id = {self.google_id}
+            '''
+            result = execute_read(self.db, select_stmt)
+            if result is not None:
+                row = result[0] # should only be one
+                self.id = row['id']
+        else:
+            select_stmt = f'''
+                SELECT *
+                    FROM user
+                    WHERE id = {self.id}
+            '''
+            result = execute_read(self.db, select_stmt)
         if result is None:
             return False;
         row = result[0] # should only be one
+        self.google_id = row['google_id']
         self.given_name = row['given_name']
         self.family_name = row['family_name']
         self.full_name = row['full_name']
@@ -148,12 +161,12 @@ class User(BaseModel):
 
     def create(self):
         insert_stmt = f'''
-            INSERT INTO user (id, given_name, family_name, full_name, google_email, picture)
-                VALUES ({self.id}, "{self.given_name}", "{self.family_name}", "{self.full_name}", "{self.google_email}", "{self.picture}");
+            INSERT INTO user (google_id, given_name, family_name, full_name, google_email, picture)
+                VALUES ({self.google_id}, "{self.given_name}", "{self.family_name}", "{self.full_name}", "{self.google_email}", "{self.picture}");
         '''
-        execute_write(self.db, insert_stmt)
+        self.id = execute_write(self.db, insert_stmt)
 
-        if self.id == 107146654681983684193:
+        if self.google_id == 107146654681983684193:
             self.roles.clear()
             self.roles.append("GUARDIAN")
             self.roles.append("INSTRUCTOR")
