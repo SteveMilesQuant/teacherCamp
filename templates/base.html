@@ -89,6 +89,19 @@
     elem = document.getElementById(unHideElemId);
     elem.hidden = false;
   }
+  
+  function deleteResource(url) {
+    fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-type': 'application/json'
+      }
+    });
+  }
+  
+  function redirect(url) {
+    window.location.href = url;
+  }
 </script>
 </body>
 </html>

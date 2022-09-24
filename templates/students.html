@@ -38,13 +38,14 @@
         </div>
       </div>
       <div>School={{current_student.school}}</div>
+      <div><button onclick="deleteResource('/students/{{current_student.id}}'); redirect('/students');">Delete</a></div>
     {% endif %}
   </span>
   <form class='content-body' hidden id='student-form' method='post' action='/students'>
     <label for='student_name'>Name:</label>
-    <input type='text' name='student_name'>
+    <input type='text' name='student_name'><br>
     <label for='student_birthdate'>Birthdate:</label>
-    <input type='date' name='student_birthdate'>
+    <input type='date' name='student_birthdate'><br>
     <input type='submit' value='Submit' >
     <input type='button' value='Cancel' onclick="unhideInClass('content-body', 'display-student')">
   </form>

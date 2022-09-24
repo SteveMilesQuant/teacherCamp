@@ -219,6 +219,13 @@ async def student_post(request: Request, student_id: int):
     )
     return await students_get(request=request, selected_id=student_id)
 
+@api_router.delete("/students/{student_id}")
+async def student_delete(request: Request, student_id: int):
+    app.user.student_ids.remove(student_id)
+    student = Student(id=student_id, db=app.db)
+    student.delete()
+    
+
 @api_router.get("/programs/teach")
 async def programs_teach_get(request: Request):
     template_args = await build_base_html_args(request)
