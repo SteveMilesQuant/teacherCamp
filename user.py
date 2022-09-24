@@ -39,7 +39,7 @@ def load_all_roles(db: Any) -> Dict[str, Role]:
 class Student(BaseModel):
     id: Optional[int] = None  # we use AUTOMATICINCREMENT on create, so this wouldn't be necessary then
     name: Optional[str] = None
-    birthdate: Optional[date] = date(2022, 1, 1)
+    birthdate: Optional[date] = None
     school: Optional[str] = ""
     db: Any
 

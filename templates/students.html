@@ -5,22 +5,48 @@
     {% for id, name in student_names.items() %}
       <div class='sidebar-item'><a href="/students/{{id}}">{{name}}</a></div>
     {% endfor %}
-    <div class='sidebar-item'><button class='text-button' onclick="hideAndUnhide('content-body', 'student-form'); updateAction('student-form', '/students');">+</button></div>
+    <div class='sidebar-item'><button class='text-button' onclick="unhideInClass('content-body', 'student-form')">+</button></div>
   </span>
   <span class='content-body' id='display-student'>
     {% if current_student is not none %}
-      <div>Name={{current_student.name}}</div>
-      <div>Birthdate={{current_student.birthdate}}</div>
+      <div>
+        <div id='student-name'>
+          <span>Name={{current_student.name}}</span>
+          <span><button onclick="swapHidden('student-name', 'edit-student-name')">Edit</button></span>
+        </div>
+        <div id='edit-student-name' hidden>
+          <form  method='post' action='/students/{{current_student.id}}'>
+            <label for='student_name'>Name:</label>
+            <input type='text' name='student_name' value="{{current_student.name}}">
+            <input type='submit' value='Update' >
+            <input type='button' value='Cancel' onclick="swapHidden('edit-student-name', 'student-name')">
+          </form>
+        </div>
+      </div>
+      <div>
+        <div id='student-birthdate'>
+          <span>Birthdate={{current_student.birthdate}}</span>
+          <span><button onclick="swapHidden('student-birthdate', 'edit-student-birthdate')">Edit</button></span>
+        </div>
+        <div id='edit-student-birthdate' hidden>
+          <form  method='post' action='/students/{{current_student.id}}'>
+            <label for='student_birthdate'>Birthdate:</label>
+            <input type='date' name='student_birthdate' value="{{current_student.birthdate}}">
+            <input type='submit' value='Update' >
+            <input type='button' value='Cancel' onclick="swapHidden('edit-student-birthdate', 'student-birthdate')">
+          </form>
+        </div>
+      </div>
       <div>School={{current_student.school}}</div>
-      <div><button onclick="hideAndUnhide('content-body', 'student-form'); updateAction('student-form', '/students/{{current_student.id}}');">Update</button></div>
     {% endif %}
   </span>
-  <form class='content-body' hidden id='student-form' method='post'>
+  <form class='content-body' hidden id='student-form' method='post' action='/students'>
     <label for='student_name'>Name:</label>
-    <input type='text' id='student-name' name='student_name' {% if current_student is not none %}value="{{current_student.name}}"{% endif %}>
-    <input type='date' id='student-birthday' name='student_birthdate' {% if current_student is not none %}value="{{current_student.birthdate}}"{% endif %}>
+    <input type='text' name='student_name'>
+    <label for='student_birthdate'>Birthdate:</label>
+    <input type='date' name='student_birthdate'>
     <input type='submit' value='Submit' >
-    <input type='button' value='Cancel' onclick="hideAndUnhide('content-body', 'display-student')">
+    <input type='button' value='Cancel' onclick="unhideInClass('content-body', 'display-student')">
   </form>
 {% endblock %}
 

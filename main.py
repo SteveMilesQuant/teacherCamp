@@ -166,7 +166,7 @@ async def students_get(request: Request, selected_id = None):
     template_args['current_student'] = current_student
     return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
 
-async def student_add_or_update(student_id = None, student_name = "", student_birthdate = None):
+async def student_add_or_update(student_id = None, student_name = None, student_birthdate = None):
     if app.user is not None:
         student = Student(
             db = app.db,
@@ -175,8 +175,10 @@ async def student_add_or_update(student_id = None, student_name = "", student_bi
             birthdate = student_birthdate
         )
         if student_id is not None:
-            student.name = student_name
-            student.birthdate = student_birthdate
+            if student_name is not None:
+                student.name = student_name
+            if student_birthdate is not None:
+                student.birthdate = student_birthdate
             student.update()
         if student.id not in app.user.student_ids:
             app.user.student_ids.append(student.id)
@@ -202,10 +204,17 @@ async def student_post(request: Request, student_name: str = Form(), student_bir
     return await students_get(request=request, selected_id=student_id)
     
 @api_router.post("/students/{student_id}")
-async def student_post(request: Request, student_id: int, student_name: str = Form(), student_birthdate: date = Form()):
+async def student_post(request: Request, student_id: int):
+    form = await request.form()
+    student_birthdate_str = form.get('student_birthdate')
+    if student_birthdate_str is None:
+        student_birthdate = None
+    else:
+        year, month, day = student_birthdate_str.split('-')
+        student_birthdate = date(int(year), int(month), int(day))
     student_id = await student_add_or_update(
         student_id = student_id,
-        student_name = student_name,
+        student_name = form.get('student_name'),
         student_birthdate = student_birthdate
     )
     return await students_get(request=request, selected_id=student_id)
