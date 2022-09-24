@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
 from user import User, load_all_roles, Student
+from datetime import date
 
 
 app = FastAPI()
@@ -165,11 +166,17 @@ async def students_get(request: Request, selected_id = None):
     template_args['current_student'] = current_student
     return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
 
-async def student_add_or_update(student_id = None, student_name = ""):
+async def student_add_or_update(student_id = None, student_name = "", student_birthdate = None):
     if app.user is not None:
-        student = Student(db = app.db, id = student_id, name = student_name)
+        student = Student(
+            db = app.db,
+            id = student_id,
+            name = student_name,
+            birthdate = student_birthdate
+        )
         if student_id is not None:
             student.name = student_name
+            student.birthdate = student_birthdate
             student.update()
         if student.id not in app.user.student_ids:
             app.user.student_ids.append(student.id)
@@ -186,13 +193,21 @@ async def students_get_one(request: Request, student_id: int):
     return await students_get(request=request, selected_id=student_id)
 
 @api_router.post("/students")
-async def student_post(request: Request, student_name: str = Form()):
-    student_id = await student_add_or_update(student_id = None, student_name = student_name)
+async def student_post(request: Request, student_name: str = Form(), student_birthdate: date = Form()):
+    student_id = await student_add_or_update(
+        student_id = None,
+        student_name = student_name,
+        student_birthdate = student_birthdate
+    )
     return await students_get(request=request, selected_id=student_id)
     
 @api_router.post("/students/{student_id}")
-async def student_post(request: Request, student_id: int, student_name: str = Form()):
-    student_id = await student_add_or_update(student_id = student_id, student_name = student_name)
+async def student_post(request: Request, student_id: int, student_name: str = Form(), student_birthdate: date = Form()):
+    student_id = await student_add_or_update(
+        student_id = student_id,
+        student_name = student_name,
+        student_birthdate = student_birthdate
+    )
     return await students_get(request=request, selected_id=student_id)
 
 @api_router.get("/programs/teach")

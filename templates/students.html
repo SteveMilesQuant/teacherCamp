@@ -17,7 +17,8 @@
   </span>
   <form class='content-body' hidden id='student-form' method='post'>
     <label for='student_name'>Name:</label>
-    <input type='text' id='student-name' name='student_name'>
+    <input type='text' id='student-name' name='student_name' {% if current_student is not none %}value="{{current_student.name}}"{% endif %}>
+    <input type='date' id='student-birthday' name='student_birthdate' {% if current_student is not none %}value="{{current_student.birthdate}}"{% endif %}>
     <input type='submit' value='Submit' >
     <input type='button' value='Cancel' onclick="hideAndUnhide('content-body', 'display-student')">
   </form>
