@@ -2,52 +2,60 @@
 
 {% block content %}
   <span class='sidebar'>
+    <div class='sidebar-item'><a class='selectable' href='/students'><h2>Students<h2></a></div>
+    <div class='sidebar-item h-divider'></div>
     {% for id, name in student_names.items() %}
-      <div class='sidebar-item'><a href="/students/{{id}}">{{name}}</a></div>
+      <div class='sidebar-item'><a class='selectable' href="/students/{{id}}">{{name}}</a></div>
     {% endfor %}
-    <div class='sidebar-item'><button class='text-button' onclick="unhideInClass('content-body', 'student-form')">+</button></div>
+    <div class='h-center'><button class='add-button selectable' onclick="unhideInClass('content-body', 'student-form')">+</button></div>
   </span>
   <span class='content-body' id='display-student'>
     {% if current_student is not none %}
-      <div>
+      <div class='content-item'><h1>Student Profile</h1></div>
+      <div class='content-item'>
         <div id='student-name'>
-          <span>Name={{current_student.name}}</span>
-          <span><button onclick="swapHidden('student-name', 'edit-student-name')">Edit</button></span>
+          <span>Name: {{current_student.name}}</span>
+          <span><button class='selectable' onclick="swapHidden('student-name', 'edit-student-name')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
         <div id='edit-student-name' hidden>
           <form  method='post' action='/students/{{current_student.id}}'>
             <label for='student_name'>Name:</label>
             <input type='text' name='student_name' value="{{current_student.name}}">
-            <input type='submit' value='Update' >
-            <input type='button' value='Cancel' onclick="swapHidden('edit-student-name', 'student-name')">
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-name', 'student-name')" />
           </form>
         </div>
       </div>
-      <div>
+      <div class='content-item'>
         <div id='student-birthdate'>
-          <span>Birthdate={{current_student.birthdate}}</span>
-          <span><button onclick="swapHidden('student-birthdate', 'edit-student-birthdate')">Edit</button></span>
+          <span>Birthdate: {{current_student.birthdate}}</span>
+          <span><button class='selectable' onclick="swapHidden('student-birthdate', 'edit-student-birthdate')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
         <div id='edit-student-birthdate' hidden>
           <form  method='post' action='/students/{{current_student.id}}'>
             <label for='student_birthdate'>Birthdate:</label>
             <input type='date' name='student_birthdate' value="{{current_student.birthdate}}">
-            <input type='submit' value='Update' >
-            <input type='button' value='Cancel' onclick="swapHidden('edit-student-birthdate', 'student-birthdate')">
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-birthdate', 'student-birthdate')" />
           </form>
         </div>
       </div>
-      <div>School={{current_student.school}}</div>
-      <div><button onclick="deleteResource('/students/{{current_student.id}}'); redirect('/students');">Delete</a></div>
+      <div class='content-item'>
+        <button class='selectable' onclick="deleteResource('/students/{{current_student.id}}'); redirect('/students');">
+          <img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/>
+        </button>
+      </div>
+      <div class='content-item h-divider'></div>
+      <div class='content-item'><h1>Enrolled Camps</h1></div>
     {% endif %}
   </span>
   <form class='content-body' hidden id='student-form' method='post' action='/students'>
     <label for='student_name'>Name:</label>
-    <input type='text' name='student_name' required><br>
+    <input type='text' class='content-item' name='student_name' required><br>
     <label for='student_birthdate'>Birthdate:</label>
-    <input type='date' name='student_birthdate' required><br>
-    <input type='submit' value='Submit' >
-    <input type='button' value='Cancel' onclick="unhideInClass('content-body', 'display-student')">
+    <input type='date' class='content-item' name='student_birthdate' required><br>
+    <input type="image" class='content-item small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+    <a class='content-item selectable' href='/students'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
   </form>
 {% endblock %}
 
