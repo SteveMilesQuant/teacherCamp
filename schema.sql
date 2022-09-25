@@ -16,9 +16,8 @@ CREATE TABLE role_permissions (
 	endpoint_title TEXT
 );
 INSERT INTO role_permissions (role, endpoint, endpoint_title) VALUES
-	("GUARDIAN",	"/programs/find",		"Find Programs"),
-	("GUARDIAN",	"/programs/enrolled",	"Enrolled Programs"),
 	("GUARDIAN",	"/students",			"My Students"),
+	("GUARDIAN",	"/programs/find",		"Find Programs"),
 	("INSTRUCTOR",	"/programs/teach",		"My Programs"),
 	("INSTRUCTOR",	"/programs/design",		"Design Programs"),
 	("ADMIN",		"/members",				"Manage Members"),

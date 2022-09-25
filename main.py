@@ -145,12 +145,6 @@ async def programs_find_get(request: Request):
     return resolve_auth_endpoint(request, "find_programs.html", template_args)
 
 
-@api_router.get("/programs/enrolled")
-async def programs_enrolled_get(request: Request):
-    template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "enrolled_programs.html", template_args)
-
-
 async def students_get(request: Request, selected_id = None):
     template_args = await build_base_html_args(request)
     student_names = {}

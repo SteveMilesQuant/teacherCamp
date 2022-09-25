@@ -166,7 +166,8 @@ class User(BaseModel):
         '''
         self.id = execute_write(self.db, insert_stmt)
 
-        if self.google_id == 107146654681983684193:
+        if self.id == 1:
+            # first user gets all roles
             self.roles.clear()
             self.roles.append("GUARDIAN")
             self.roles.append("INSTRUCTOR")
@@ -177,6 +178,7 @@ class User(BaseModel):
             '''
             execute_write(self.db, insert_stmt)
         else:
+            # new users are only guardians - admin must upgrade them
             self.roles.clear()
             self.roles.append("GUARDIAN")
             insert_stmt = f'''
