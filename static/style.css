@@ -151,13 +151,12 @@ footer {
 .content { height: 100%; width: 100%; display: flex; margin: 0px; }
 .content-body { height: 100%; margin: 32px; }
 .content-body a { text-decoration: none; }
-.content-item { margin: 32px; }
+.content-item { margin-top: 32px; margin-left: 32px; }
 .sidebar { position: relative; top: 6px; height: 90%; box-shadow: 0px 4px 16px 3px rgba(0,0,0,0.2); overflow-y: scroll; }
 .sidebar-item { margin: 32px; }
 .sidebar-item a { text-decoration: none }
-.add-button { height: 28px; text-align: center; line-height: 100%; border: none; margin-top 32px; margin-bottom: 32px; }
+.add-button { height: 28px; text-align: center; line-height: 100%; border: none; }
 .small-button {height: 16px; width: 16px; }
 
 .selectable:hover { background-color: #ddd; cursor: pointer; }
-.h-divider { border-bottom: 2px solid #bbb; padding: 0px; margin-top: 0px; margin-bottom: 0px; margin-left: 7%; margin-right: 7%; }
-.h-center { margin: auto; width: 50%; }
+.h-divider { margin-left: 7%; margin-right: 7%; }

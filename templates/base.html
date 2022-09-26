@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-  <title>{% block title %}{% endblock %} - Teacher Camp</title>
+  <title>Level Up Camps</title>
   <meta charset='UTF-8'>
   <link rel='stylesheet' href="{{ url_for('static', path='/style.css') }}">
 </head>
@@ -27,7 +27,7 @@
             <div class='dropdown-item'><a class='selectable' href='/signin'>Sign in with Google</a></div>
           {% else %}
             <div class='dropdown-item'><a class='selectable' href='/profile'>{{user_name}}</a></div>
-            <div class='h-divider'></div>
+            <hr class='h-divider'></hr>
             <div class='dropdown-item'><a class='selectable' href='/signout'>Sign out</a></div>
           {% endif %}
         </div>

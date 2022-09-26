@@ -3,11 +3,11 @@
 {% block content %}
   <span class='sidebar'>
     <div class='sidebar-item'><a href='/students'><h2 class='selectable'>Students<h2></a></div>
-    <div class='sidebar-item h-divider'></div>
+    <hr class='h-divider'></hr>
     {% for id, name in student_names.items() %}
       <div class='sidebar-item'><a class='selectable' href="/students/{{id}}">{{name}}</a></div>
     {% endfor %}
-    <div class='h-center'><button class='add-button selectable' onclick="unhideInClass('content-body', 'student-form')">+</button></div>
+    <div class='sidebar-item'><button class='add-button selectable' onclick="unhideInClass('content-body', 'student-form')">+</button></div>
   </span>
   <span class='content-body' id='display-student'>
     {% if current_student is not none %}
@@ -41,15 +41,16 @@
         </div>
       </div>
       <div class='content-item'>
-        <button class='selectable' onclick="deleteResource('/students/{{current_student.id}}'); redirect('/students');">
-          <img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/>
+        <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_student.name}}?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
+          <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
+          <span>Delete Student</span>
         </button>
       </div>
-      <div class='content-item h-divider'></div>
+      <hr class='content-item h-divider'></hr>
       <div class='content-item'><h1>Enrolled Camps</h1></div>
     {% endif %}
   </span>
-  <form class='content-body' hidden id='student-form' method='post' action='/students'>
+  <form class='content-body' id='student-form' method='post' action='/students' hidden>
     <label for='student_name'>Name:</label>
     <input type='text' class='content-item' name='student_name' required><br>
     <label for='student_birthdate'>Birthdate:</label>
