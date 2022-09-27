@@ -1,5 +1,4 @@
 from db import execute_read, execute_write
-from enum import Enum
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 from datetime import date
@@ -107,7 +106,7 @@ class User(BaseModel):
     picture: str
     db: Any
     roles: Optional[List[str]] = []
-    student_ids: Optional[List[int]] = []
+    students: Optional[Dict[int, Student]] = {}
 
     def load(self) -> bool:
         if self.id is None:
@@ -156,7 +155,7 @@ class User(BaseModel):
         self.student_ids.clear()
         if result is not None:
             for row in result:
-                self.student_ids.append(row['student_id'])
+                self.student_ids[row['student_id']] = None
         return True
 
     def create(self):
@@ -211,7 +210,7 @@ class User(BaseModel):
             DELETE FROM user_x_students WHERE user_id={self.id};
         '''
         execute_write(self.db, delete_stmt)
-        for student_id in self.student_ids:
+        for student_id, student in self.students.items():
             insert_stmt = f'''
                 INSERT INTO user_x_students (user_id, student_id)
                     VALUES ({self.id}, "{student_id}");
@@ -240,5 +239,25 @@ class User(BaseModel):
         if not self.load():
             self.create()
 
+    def load_students(self):
+        for student_id, student in self.students.items():
+            if student is not None:
+                break
+            self.students[student_id] = Student(id=student_id, db=self.db)
+
+    def remove_student(self, student_id: int):
+        self.load_students()
+        student = self.students.get(student_id)
+        if student is not None:
+            del self.students[student_id]
+            # If no other guardians have this student, fully delete them
+            select_stmt = f'''
+                SELECT student_id
+                    FROM user_x_students
+                    WHERE student_id = {student_id}
+            '''
+            result = execute_read(self.db, select_stmt)
+            if result is None:
+                student.delete()
 
 

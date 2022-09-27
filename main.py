@@ -149,76 +149,71 @@ async def students_get(request: Request, selected_id = None):
     template_args = await build_base_html_args(request)
     student_names = {}
     current_student = None
-
     if app.user is not None:
+        app.user.load_students()
         if selected_id is not None:
-            if selected_id in app.user.student_ids:
-                current_student = Student(db = app.db, id = selected_id)
-        for student_id in app.user.student_ids:
-            student_names[student_id] = Student(db = app.db, id = student_id).name # this is readable, but maybe it should be more efficient
+            current_student = app.user.students.get(selected_id)
+        for student_id, student in app.user.students.items():
+            student_names[student_id] = student.name
     template_args['student_names'] = student_names
     template_args['current_student'] = current_student
     return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
 
-async def student_add_or_update(student_id = None, student_name = None, student_birthdate = None):
-    if app.user is not None:
-        student = Student(
-            db = app.db,
-            id = student_id,
-            name = student_name,
-            birthdate = student_birthdate
-        )
-        if student_id is not None:
-            if student_name is not None:
-                student.name = student_name
-            if student_birthdate is not None:
-                student.birthdate = student_birthdate
-            student.update()
-        if student.id not in app.user.student_ids:
-            app.user.student_ids.append(student.id)
-            app.user.update()
-        return student.id
-    return None
 
 @api_router.get("/students")
 async def students_get_all(request: Request):
     return await students_get(request=request, selected_id=None)
 
+
 @api_router.get("/students/{student_id}")
 async def students_get_one(request: Request, student_id: int):
     return await students_get(request=request, selected_id=student_id)
 
+
 @api_router.post("/students")
-async def student_post(request: Request, student_name: str = Form(), student_birthdate: date = Form()):
-    student_id = await student_add_or_update(
-        student_id = None,
-        student_name = student_name,
-        student_birthdate = student_birthdate
-    )
+async def student_post_new(request: Request, student_name: str = Form(), student_birthdate: date = Form()):
+    student_id = None
+    if app.user is not None:
+        app.user.load_students()
+        new_student = Student(
+            id = None,
+            db = app.db,
+            name = student_name,
+            birthdate = student_birthdate
+        )
+        app.user.students[new_student.id] = new_student
+        student_id = new_student.id
     return await students_get(request=request, selected_id=student_id)
-    
+
+
 @api_router.post("/students/{student_id}")
-async def student_post(request: Request, student_id: int):
-    form = await request.form()
-    student_birthdate_str = form.get('student_birthdate')
-    if student_birthdate_str is None:
-        student_birthdate = None
-    else:
-        year, month, day = student_birthdate_str.split('-')
-        student_birthdate = date(int(year), int(month), int(day))
-    student_id = await student_add_or_update(
-        student_id = student_id,
-        student_name = form.get('student_name'),
-        student_birthdate = student_birthdate
-    )
+async def student_post_update(request: Request, student_id: int):
+    if app.user is not None:
+        app.user.load_students()
+        student = app.user.get(student_id)
+        if student is not None:
+            form = await request.form()
+            student_name = form.get('student_name')
+            student_birthdate_str = form.get('student_birthdate')
+            if student_birthdate_str is None:
+                student_birthdate = None
+            else:
+                year, month, day = student_birthdate_str.split('-')
+                student_birthdate = date(int(year), int(month), int(day))
+            if student_name is not None:
+                student.name = student_name
+            if student_birthdate is not None:
+                student.birthdate = student_birthdate
+            student.update()
+
     return await students_get(request=request, selected_id=student_id)
+
 
 @api_router.delete("/students/{student_id}")
 async def student_delete(request: Request, student_id: int):
-    app.user.student_ids.remove(student_id)
-    student = Student(id=student_id, db=app.db)
-    student.delete()
-    
+    if app.user is not None:
+        app.user.remove_student(student_id)
+
 
 @api_router.get("/programs/teach")
 async def programs_teach_get(request: Request):
