@@ -1,5 +1,35 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	<p>You are an instructor designing a new program.</p>
+  <div class='content-body'>
+    <div class='content-item'><h1>Programs</h1></div>
+    <div class='content-item'><table>
+      <tr><th>Title</th><th>Grade Levels</th><th>Tags</th><th>Half/full Day</th><th>Materials Link</th><th>Delete</th></tr>
+      <tr onclick='unhideElem("new-program");'><td>+ Add Program</td></tr>
+    </table></div>
+    <div class='pop-up' id='new-program' hidden>
+      <div class='pop-up-item'>
+        <form action='/programs/design' method='post'>
+          <label class='form-item' for='program_title'>Name:</label><br>
+          <input class='form-item form-input' type='text' name='program_title' required><br>
+          <label class='form-item' for='from_grade'>From grade:</label><br>
+          <select class='form-item form-input' type='select' name='from_grade' value='6'>
+            <option value="0">K</option>
+            {% for grade in range(1, 13) %}
+              <option value="{{grade}}" {% if grade == 6 %}selected{% endif %}>{{grade}}</option>
+            {% endfor %}
+          </select><br>
+          <label class='form-item' for='to_grade'>To grade:</label><br>
+          <select class='form-item form-input' name='to_grade' value='8'>
+            <option value="0">K</option>
+            {% for grade in range(1, 13) %}
+              <option value="{{grade}}" {% if grade == 8 %}selected{% endif %}>{{grade}}</option>
+            {% endfor %}
+          </select><br>
+          <input class='form-item small-button selectable' type="image" src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+          <a class='form-iterm selectable' href='/programs/design'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock %}

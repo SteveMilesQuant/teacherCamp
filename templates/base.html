@@ -73,6 +73,11 @@
       mainElem.style.marginLeft = width;
     }
   }
+  
+  function unhideElem(elemIdToUnhide) {
+    unhideElem = document.getElementById(elemIdToUnhide);
+    unhideElem.hidden = false;
+  }
 
   function unhideInClass(classToHide, elemIdToUnhide) {
     hideList = document.getElementsByClassName(classToHide);
