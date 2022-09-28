@@ -6,7 +6,7 @@
     <div class='content-item'><table>
       <tr><th>Title</th><th>Grade Levels</th><th>Tags</th><th>Materials Link</th></tr>
       {% for program in programs.values() %}
-        <tr>
+        <tr onclick='redirect("/programs/{{program.id}}");'>
           <td>{{program.title}}</td>
           <td>{{program.grade_range[0]}} to {{program.grade_range[1]}}</td>
           <td>{{program.tags}}</td>

@@ -255,6 +255,18 @@ async def programs_get_all(request: Request):
     return await programs_get(request)
 
 
+@api_router.get("/programs/{program_id}")
+async def programs_get_one(request: Request, program_id: int):
+    template_args = await build_base_html_args(request)
+    current_program = None
+    if app.user is not None:
+        current_program = app.user.programs.get(program_id)
+        if current_program is None:
+            return RedirectResponse(url='/programs')
+    template_args['current_program'] = current_program
+    return resolve_auth_endpoint(request, "program.html", template_args, permission_url_path='/programs')
+
+
 @api_router.post("/programs")
 async def programs_post_new(request: Request, title: str = Form(), from_grade: int = Form(), to_grade: int = Form(), tags: str = Form()):
     if not check_auth(request):
