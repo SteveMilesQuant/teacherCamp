@@ -311,9 +311,15 @@ async def database_get(request: Request):
 
 
 @api_router.get("/schedule")
-async def programs_schedule_get(request: Request):
+async def schedule_get(request: Request):
     template_args = await build_base_html_args(request)
     return resolve_auth_endpoint(request, "schedule.html", template_args)
+
+
+@api_router.get("/instructor/{user_id}")
+async def instructor_get_one(request: Request, user_id: int):
+    template_args = await build_base_html_args(request)
+    return resolve_auth_endpoint(request, "instructor.html", template_args, permission_url_path='/camps')
 
 
 app.include_router(api_router)
