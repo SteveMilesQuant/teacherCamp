@@ -79,15 +79,6 @@
     unhideElem.hidden = false;
   }
 
-  function unhideInClass(classToHide, elemIdToUnhide) {
-    hideList = document.getElementsByClassName(classToHide);
-    for (let i = 0; i < hideList.length; i++) {
-      hideList[i].hidden = true;
-    }
-    unhideElem = document.getElementById(elemIdToUnhide);
-    unhideElem.hidden = false;
-  }
-
   function swapHidden(hideElemId, unHideElemId) {
     elem = document.getElementById(hideElemId);
     elem.hidden = true;

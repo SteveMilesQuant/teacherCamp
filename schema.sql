@@ -16,13 +16,13 @@ CREATE TABLE role_permissions (
 	endpoint_title TEXT
 );
 INSERT INTO role_permissions (role, endpoint, endpoint_title) VALUES
-	("GUARDIAN",	"/students",			"My Students"),
-	("GUARDIAN",	"/programs/find",		"Find Programs"),
-	("INSTRUCTOR",	"/programs/teach",		"My Programs"),
-	("INSTRUCTOR",	"/programs/design",		"Design Programs"),
-	("ADMIN",		"/members",				"Manage Members"),
-	("ADMIN",		"/database",			"Manage Database"),
-	("ADMIN",		"/programs/schedule",	"Schedule Programs");
+	("GUARDIAN",	"/students",	"My Students"),
+	("GUARDIAN",	"/camps",		"Find Camps"),
+	("INSTRUCTOR",	"/teach",		"Ongoing Camps"),
+	("INSTRUCTOR",	"/programs",	"Design Programs"),
+	("ADMIN",		"/members",		"Manage Members"),
+	("ADMIN",		"/database",	"Manage Database"),
+	("ADMIN",		"/schedule",	"Schedule Camps");
 
 DROP TABLE IF EXISTS user_x_roles;
 create table user_x_roles (
@@ -53,7 +53,6 @@ create table program (
 	title TEXT,
 	from_grade INTEGER,
 	to_grade INTEGER,
-	duration TEXT,
 	tags TEXT,
 	description TEXT	
 );

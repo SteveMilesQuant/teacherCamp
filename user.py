@@ -272,6 +272,7 @@ class User(BaseModel):
         student = self.students.get(student_id)
         if student is not None:
             del self.students[student_id]
+            self.update()
             # If no other guardians have this student, fully delete them
             select_stmt = f'''
                 SELECT student_id
@@ -291,6 +292,7 @@ class User(BaseModel):
         program = self.programs.get(program_id)
         if program is not None:
             del self.programs[program_id]
+            self.update()
             # If no other instructors have this program, fully delete it
             select_stmt = f'''
                 SELECT program_id

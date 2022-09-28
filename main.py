@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
 from user import load_all_roles, User, Student
-from program import Program, Duration
+from program import Program
 from datetime import date
 
 
@@ -151,10 +151,10 @@ async def profile_get(request: Request):
     return templates.TemplateResponse("profile.html", template_args)
 
 
-@api_router.get("/programs/find")
-async def programs_find_get(request: Request):
+@api_router.get("/camps")
+async def camps_get(request: Request):
     template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "find_programs.html", template_args)
+    return resolve_auth_endpoint(request, "camps.html", template_args)
 
 
 async def students_get(request: Request, selected_id = None):
@@ -231,13 +231,13 @@ async def student_delete(request: Request, student_id: int):
         app.user.remove_student(student_id)
 
 
-@api_router.get("/programs/teach")
+@api_router.get("/teach")
 async def programs_teach_get(request: Request):
     template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "teach_programs.html", template_args)
+    return resolve_auth_endpoint(request, "teach.html", template_args)
 
 
-async def program_designs_get(request: Request):
+async def programs_get(request: Request):
     template_args = await build_base_html_args(request)
     programs = {}
     if app.user is not None:
@@ -246,43 +246,42 @@ async def program_designs_get(request: Request):
         for program in programs.values():
             program.db = None # don't let HTML do SQL directly, if that's even possible
     template_args['programs'] = programs
-    return resolve_auth_endpoint(request, "design_programs.html", template_args, permission_url_path='/students')
+    return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
 
 
-@api_router.get("/programs/design")
-async def programs_design_get(request: Request):
-    return await program_designs_get(request)
+@api_router.get("/programs")
+async def programs_get_all(request: Request):
+    return await programs_get(request)
 
 
-@api_router.post("/programs/design")
-async def programs_design_post_new(request: Request, title: str = Form(), from_grade: int = Form(), to_grade: int = Form(), duration: str = Form(), tags: str = Form()):
+@api_router.post("/programs")
+async def programs_post_new(request: Request, title: str = Form(), from_grade: int = Form(), to_grade: int = Form(), tags: str = Form()):
     if not check_auth(request):
         template_args = await build_base_html_args(request)
-        return resolve_auth_endpoint(request, "design_programs.html", template_args)
+        return resolve_auth_endpoint(request, "programs.html", template_args)
     new_program = Program(
         db = app.db,
         title = title,
         grade_range = (from_grade, to_grade),
-        duration = Duration[duration],
         tags = tags
     )
     app.user.load_programs()
     app.user.programs[new_program.id] = new_program
     app.user.update()
-    return await program_designs_get(request)
+    return await programs_get(request)
 
 
-@api_router.post("/programs/design/{program_id}")
-async def programs_design_post_update(request: Request):
-    if not check_auth(request, permission_url_path='/programs/design'):
+@api_router.post("/programs/{program_id}")
+async def programs_post_update(request: Request):
+    if not check_auth(request, permission_url_path='/programs'):
         template_args = await build_base_html_args(request)
-        return resolve_auth_endpoint(request, "design_programs.html", template_args, permission_url_path='/programs/design')
-    return await program_designs_get(request)
+        return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
+    return await programs_get(request)
 
 
-@api_router.delete("/programs/design/{program_id}")
+@api_router.delete("/programs/{program_id}")
 async def program_delete(request: Request, program_id: int):
-    if check_auth(request, permission_url_path='/programs/design'):
+    if check_auth(request, permission_url_path='/programs'):
         app.user.remove_program(program_id)
 
 
@@ -298,10 +297,10 @@ async def database_get(request: Request):
     return resolve_auth_endpoint(request, "database.html", template_args)
 
 
-@api_router.get("/programs/schedule")
+@api_router.get("/schedule")
 async def programs_schedule_get(request: Request):
     template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "program_scheduling.html", template_args)
+    return resolve_auth_endpoint(request, "schedule.html", template_args)
 
 
 app.include_router(api_router)

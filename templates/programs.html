@@ -4,16 +4,15 @@
   <div class='content-body'>
     <div class='content-item'><h1>Programs</h1></div>
     <div class='content-item'><table>
-      <tr><th>Title</th><th>Grade Levels</th><th>Half/full Day</th><th>Tags</th><th>Materials Link</th></tr>
+      <tr><th>Title</th><th>Grade Levels</th><th>Tags</th><th>Materials Link</th></tr>
       {% for program in programs.values() %}
         <tr>
           <td>{{program.title}}</td>
           <td>{{program.grade_range[0]}} to {{program.grade_range[1]}}</td>
-          <td>{{program.duration.name|title}}</td>
           <td>{{program.tags}}</td>
           <td></td>
           <td>
-            <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{program.title}}?')) { deleteResource('/programs/design/{{program.id}}'); redirect('/programs/design'); }">
+            <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{program.title}}?')) { deleteResource('/programs/{{program.id}}'); redirect('/programs'); }">
               Delete
             </button>
           </td>
@@ -24,7 +23,7 @@
     <div class='pop-up' id='new-program' hidden>
       <div class='pop-up-item'>
         <h1>New Program</h1>
-        <form action='/programs/design' method='post'>
+        <form action='/programs' method='post'>
           <label class='form-item' for='title'>Title:</label><br>
           <input class='form-item form-input-text' type='text' name='title' required /><br>
           <label class='form-item' for='from_grade'>From grade:</label>
@@ -41,15 +40,10 @@
               <option value="{{grade}}" {% if grade == 8 %}selected{% endif %}>{{grade}}</option>
             {% endfor %}
           </select><br>
-          <label class='form-item' for='duration' required>Half or full day:</label>
-          <select class='form-item' name='duration' value='half'>
-            <option value="half" selected>Half Day</option>
-            <option value="full">Full Day</option>
-          </select><br>
           <label class='form-item' for='tags'>Tags:</label><br>
           <input class='form-item form-input-text' type='text' name='tags' /><br>
           <input class='form-item small-button selectable' type="image" src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-          <a class='form-iterm selectable' href='/programs/design'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
+          <a class='form-iterm selectable' href='/programs'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
         </form>
       </div>
     </div>
