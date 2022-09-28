@@ -2,6 +2,7 @@ from db import execute_read, execute_write
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 from datetime import date
+from program import Program
 
 
 class Role(BaseModel):
@@ -107,6 +108,7 @@ class User(BaseModel):
     db: Any
     roles: Optional[List[str]] = []
     students: Optional[Dict[int, Student]] = {}
+    programs: Optional[Dict[int, Program]] = {}
 
     def load(self) -> bool:
         if self.id is None:
@@ -241,8 +243,6 @@ class User(BaseModel):
 
     def load_students(self):
         for student_id, student in self.students.items():
-            if student is not None:
-                break
             self.students[student_id] = Student(id=student_id, db=self.db)
 
     def remove_student(self, student_id: int):
@@ -259,5 +259,24 @@ class User(BaseModel):
             result = execute_read(self.db, select_stmt)
             if result is None:
                 student.delete()
+
+    def load_programs(self):
+        for program_id, program in self.programs.items():
+            self.programs[program_id] = Program(id=program_id, db=self.db)
+
+    def remove_program(self, program_id: int):
+        self.load_programs()
+        program = self.programs.get(program_id)
+        if program is not None:
+            del self.programs[program_id]
+            # If no other instructors have this program, fully delete it
+            select_stmt = f'''
+                SELECT program_id
+                    FROM user_x_programs
+                    WHERE program_id = {program_id}
+            '''
+            result = execute_read(self.db, select_stmt)
+            if result is None:
+                program.delete()
 
 

@@ -4,7 +4,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
-from user import User, load_all_roles, Student
+from user import load_all_roles, User, Student
+from program import Program, Duration
 from datetime import date
 
 
@@ -119,6 +120,17 @@ async def shutdown() -> None:
         os.remove(app.db_path)
 
 
+def check_auth(request: Request, permission_url_path = None) -> bool:
+    if app.user:
+        if permission_url_path is None:
+            permission_url_path = request.url.path
+        for role_name in app.user.roles:
+            role = app.roles[role_name]
+            if permission_url_path in role.permissible_endpoints:
+                return True
+    return False
+
+
 def resolve_auth_endpoint(request: Request, tgt_html: str, template_args: dict, permission_url_path = None):
     if not app.user:
         return templates.TemplateResponse('login.html', template_args)
@@ -152,7 +164,8 @@ async def students_get(request: Request, selected_id = None):
     if app.user is not None:
         app.user.load_students()
         if selected_id is not None:
-            current_student = app.user.students.get(selected_id)
+            current_student = app.user.students.get(selected_id).copy()
+            current_student.db = None # don't let HTML do SQL directly, if that's even possible
         for student_id, student in app.user.students.items():
             student_names[student_id] = student.name
     template_args['student_names'] = student_names
@@ -172,45 +185,50 @@ async def students_get_one(request: Request, student_id: int):
 
 @api_router.post("/students")
 async def student_post_new(request: Request, student_name: str = Form(), student_birthdate: date = Form()):
-    student_id = None
-    if app.user is not None:
-        app.user.load_students()
-        new_student = Student(
-            id = None,
-            db = app.db,
-            name = student_name,
-            birthdate = student_birthdate
-        )
-        app.user.students[new_student.id] = new_student
-        student_id = new_student.id
+    if not check_auth(request):
+        template_args = await build_base_html_args(request)
+        return resolve_auth_endpoint(request, "students.html", template_args)
+    app.user.load_students()
+    new_student = Student(
+        id = None,
+        db = app.db,
+        name = student_name,
+        birthdate = student_birthdate
+    )
+    app.user.students[new_student.id] = new_student
+    student_id = new_student.id
     return await students_get(request=request, selected_id=student_id)
 
 
 @api_router.post("/students/{student_id}")
 async def student_post_update(request: Request, student_id: int):
-    if app.user is not None:
-        app.user.load_students()
-        student = app.user.get(student_id)
-        if student is not None:
-            form = await request.form()
-            student_name = form.get('student_name')
-            student_birthdate_str = form.get('student_birthdate')
-            if student_birthdate_str is None:
-                student_birthdate = None
-            else:
-                year, month, day = student_birthdate_str.split('-')
-                student_birthdate = date(int(year), int(month), int(day))
-            if student_name is not None:
-                student.name = student_name
-            if student_birthdate is not None:
-                student.birthdate = student_birthdate
-            student.update()
-
+    if not check_auth(request):
+        template_args = await build_base_html_args(request)
+        return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
+    app.user.load_students()
+    student = app.user.get(student_id)
+    if student is not None:
+        form = await request.form()
+        student_name = form.get('student_name')
+        student_birthdate_str = form.get('student_birthdate')
+        if student_birthdate_str is None:
+            student_birthdate = None
+        else:
+            year, month, day = student_birthdate_str.split('-')
+            student_birthdate = date(int(year), int(month), int(day))
+        if student_name is not None:
+            student.name = student_name
+        if student_birthdate is not None:
+            student.birthdate = student_birthdate
+        student.update()
     return await students_get(request=request, selected_id=student_id)
 
 
 @api_router.delete("/students/{student_id}")
 async def student_delete(request: Request, student_id: int):
+    if not check_auth(request):
+        template_args = await build_base_html_args(request)
+        return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
     if app.user is not None:
         app.user.remove_student(student_id)
 
@@ -221,10 +239,46 @@ async def programs_teach_get(request: Request):
     return resolve_auth_endpoint(request, "teach_programs.html", template_args)
 
 
+async def program_designs_get(request: Request):
+    template_args = await build_base_html_args(request)
+    programs = {}
+    if app.user is not None:
+        app.user.load_programs()
+        programs = app.user.programs.copy()
+        for program in programs.values():
+            program.db = None # don't let HTML do SQL directly, if that's even possible
+    template_args['programs'] = programs
+    return resolve_auth_endpoint(request, "design_programs.html", template_args, permission_url_path='/students')
+
+
 @api_router.get("/programs/design")
 async def programs_design_get(request: Request):
-    template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "design_programs.html", template_args)
+    return await program_designs_get(request)
+
+
+@api_router.post("/programs/design")
+async def programs_design_post_new(request: Request, title: str = Form(), from_grade: int = Form(), to_grade: int = Form(), duration: str = Form(), tags: str = Form()):
+    if not check_auth(request):
+        template_args = await build_base_html_args(request)
+        return resolve_auth_endpoint(request, "design_programs.html", template_args)
+    new_program = Program(
+        db = app.db,
+        title = title,
+        grade_range = (from_grade, to_grade),
+        duration = Duration[duration],
+        tags = tags
+    )
+    app.user.load_programs()
+    app.user.programs[new_program.id] = new_program
+    return await program_designs_get(request)
+
+
+@api_router.post("/programs/design/{program_id}")
+async def programs_design_post_update(request: Request):
+    if not check_auth(request):
+        template_args = await build_base_html_args(request)
+        return resolve_auth_endpoint(request, "design_programs.html", template_args, permission_url_path='/programs/design')
+    return await program_designs_get(request)
 
 
 @api_router.get("/members")

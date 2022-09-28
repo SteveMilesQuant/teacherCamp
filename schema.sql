@@ -43,9 +43,26 @@ DROP TABLE IF EXISTS user_x_students;
 create table user_x_students (
 	user_id INTEGER NOT NULL,
 	student_id INTEGER NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES user(id)
+	FOREIGN KEY (user_id) REFERENCES user(id),
 	FOREIGN KEY (student_id) REFERENCES student(id)
-)
+);
 
+DROP TABLE IF EXISTS program;
+create table program (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	title TEXT,
+	from_grade INTEGER,
+	to_grade INTEGER,
+	duration TEXT,
+	tags TEXT,
+	description TEXT	
+);
 
+DROP TABLE IF EXISTS user_x_programs;
+create table user_x_programs (
+	user_id INTEGER NOT NULL,
+	program_id INTEGER NOT NULL,
+	FOREIGN KEY (user_id) REFERENCES user(id),
+	FOREIGN KEY (program_id) REFERENCES program(id)
+);
 
