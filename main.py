@@ -4,7 +4,8 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
-from user import load_all_roles, User, Student
+from user import load_all_roles, User
+from student import Student
 from program import Program
 from datetime import date
 
