@@ -197,14 +197,15 @@ async def student_post_new(request: Request, student_name: str = Form(), student
     )
     app.user.students[new_student.id] = new_student
     student_id = new_student.id
+    app.user.update()
     return await students_get(request=request, selected_id=student_id)
 
 
 @api_router.post("/students/{student_id}")
 async def student_post_update(request: Request, student_id: int):
-    if not check_auth(request):
+    if not check_auth(request, permission_url_path='/students'):
         template_args = await build_base_html_args(request)
-        return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
+        return resolve_auth_endpoint(request, "students.html", template_args)
     app.user.load_students()
     student = app.user.get(student_id)
     if student is not None:
@@ -226,10 +227,7 @@ async def student_post_update(request: Request, student_id: int):
 
 @api_router.delete("/students/{student_id}")
 async def student_delete(request: Request, student_id: int):
-    if not check_auth(request):
-        template_args = await build_base_html_args(request)
-        return resolve_auth_endpoint(request, "students.html", template_args, permission_url_path='/students')
-    if app.user is not None:
+    if check_auth(request, permission_url_path='/students'):
         app.user.remove_student(student_id)
 
 
@@ -270,15 +268,22 @@ async def programs_design_post_new(request: Request, title: str = Form(), from_g
     )
     app.user.load_programs()
     app.user.programs[new_program.id] = new_program
+    app.user.update()
     return await program_designs_get(request)
 
 
 @api_router.post("/programs/design/{program_id}")
 async def programs_design_post_update(request: Request):
-    if not check_auth(request):
+    if not check_auth(request, permission_url_path='/programs/design'):
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "design_programs.html", template_args, permission_url_path='/programs/design')
     return await program_designs_get(request)
+
+
+@api_router.delete("/programs/design/{program_id}")
+async def program_delete(request: Request, program_id: int):
+    if check_auth(request, permission_url_path='/programs/design'):
+        app.user.remove_program(program_id)
 
 
 @api_router.get("/members")

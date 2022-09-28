@@ -4,9 +4,20 @@
   <div class='content-body'>
     <div class='content-item'><h1>Programs</h1></div>
     <div class='content-item'><table>
-      <tr><th>Title</th><th>Grade Levels</th><th>Half/full Day</th><th>Tags</th><th>Materials Link</th>
+      <tr><th>Title</th><th>Grade Levels</th><th>Half/full Day</th><th>Tags</th><th>Materials Link</th></tr>
       {% for program in programs.values() %}
-        <tr><td>{{program.title}}</td><td>{{program.grade_range[0]}} to {{program.grade_range[1]}}</td><td>{{program.duration.name|title}}</td><td>{{program.tags}}</td><td></td><td>Delete</td>
+        <tr>
+          <td>{{program.title}}</td>
+          <td>{{program.grade_range[0]}} to {{program.grade_range[1]}}</td>
+          <td>{{program.duration.name|title}}</td>
+          <td>{{program.tags}}</td>
+          <td></td>
+          <td>
+            <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{program.title}}?')) { deleteResource('/programs/design/{{program.id}}'); redirect('/programs/design'); }">
+              Delete
+            </button>
+          </td>
+        </tr>
       {% endfor %}
       <tr onclick='unhideElem("new-program");'><td>+ Add Program</td></tr>
     </table></div>

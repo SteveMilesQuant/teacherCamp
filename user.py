@@ -154,10 +154,21 @@ class User(BaseModel):
                 WHERE user_id = {self.id}
         '''
         result = execute_read(self.db, select_stmt)
-        self.student_ids.clear()
+        self.students.clear()
         if result is not None:
             for row in result:
-                self.student_ids[row['student_id']] = None
+                self.students[row['student_id']] = None
+                
+        select_stmt = f'''
+            SELECT program_id
+                FROM user_x_programs
+                WHERE user_id = {self.id}
+        '''
+        result = execute_read(self.db, select_stmt)
+        self.programs.clear()
+        if result is not None:
+            for row in result:
+                self.programs[row['program_id']] = None
         return True
 
     def create(self):
@@ -212,10 +223,21 @@ class User(BaseModel):
             DELETE FROM user_x_students WHERE user_id={self.id};
         '''
         execute_write(self.db, delete_stmt)
-        for student_id, student in self.students.items():
+        for student_id in self.students.keys():
             insert_stmt = f'''
                 INSERT INTO user_x_students (user_id, student_id)
                     VALUES ({self.id}, "{student_id}");
+            '''
+            execute_write(self.db, insert_stmt)
+            
+        delete_stmt = f'''
+            DELETE FROM user_x_programs WHERE user_id={self.id};
+        '''
+        execute_write(self.db, delete_stmt)
+        for program_id in self.programs.keys():
+            insert_stmt = f'''
+                INSERT INTO user_x_programs (user_id, program_id)
+                    VALUES ({self.id}, "{program_id}");
             '''
             execute_write(self.db, insert_stmt)
 
