@@ -319,7 +319,11 @@ async def schedule_get(request: Request):
 @api_router.get("/instructor/{user_id}")
 async def instructor_get_one(request: Request, user_id: int):
     template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "instructor.html", template_args, permission_url_path='/camps')
+    return resolve_auth_endpoint(
+        request, "instructor.html",
+        template_args,
+        permission_url_path='/camps' # a user that has permission to camps should be able to see instructors
+    )
 
 
 app.include_router(api_router)

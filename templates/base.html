@@ -24,11 +24,11 @@
         </button>
         <div class='dropdown-content'>
           {% if user_id is none %}
-            <div class='dropdown-item'><a class='selectable' href='/signin'>Sign in with Google</a></div>
+            <div class='dropdown-item menu-font'><a class='selectable' href='/signin'>Sign in with Google</a></div>
           {% else %}
-            <div class='dropdown-item'><a class='selectable' href='/profile'>{{user_name}}</a></div>
+            <div class='dropdown-item menu-font'><a class='selectable' href='/profile'>{{user_name}}</a></div>
             <hr class='h-divider'></hr>
-            <div class='dropdown-item'><a class='selectable' href='/signout'>Sign out</a></div>
+            <div class='dropdown-item menu-font'><a class='selectable' href='/signout'>Sign out</a></div>
           {% endif %}
         </div>
       </span>
@@ -39,9 +39,9 @@
     {% if user_id is not none %}
       {% for role in roles %}
         <div class="hamburger-nav-role">
-          {% if roles|length > 1 %} <p>{{role.name|title}}</p> {% endif %}
+          {% if roles|length > 1 %} <h2>{{role.name|title}}</h2> {% endif %}
           {% for link_tgt, link_label in role.permissible_endpoints.items() %}
-            <div class="hamburger-nav-role-link"><a class='selectable' href="{{link_tgt}}">{{link_label}}</a></div>
+            <div class="hamburger-nav-role-link menu-font"><a class='selectable' href="{{link_tgt}}">{{link_label}}</a></div>
           {% endfor %}
         </div>
       {% endfor %}

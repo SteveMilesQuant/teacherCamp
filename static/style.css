@@ -1,9 +1,10 @@
-html * { font-size: 18px; font-family: Georgia; color: #757575; -ms-overflow-style: none;  scrollbar-width: none; }
+html * { font-family: Georgia; color: #757575; -ms-overflow-style: none; scrollbar-width: none; }
 html, body { margin: 0px; height: 100%; }
 body { overflow: hidden; }
 h1 { font-size: 22px; }
 h2 { font-size: 20px; }
-button { border: none; }
+h3 { font-size: 18px; }
+button { border: none; font-size: 16px; }
 ::-webkit-scrollbar {
   display: none;
 }
@@ -19,6 +20,11 @@ th {
 }
 tr:nth-child(even){background-color: lightcyan;}
 tr:hover {background-color: #ddd; cursor: pointer; }
+
+.selectable:hover { background-color: #ddd; cursor: pointer; }
+.h-divider { margin-left: 8px; margin-right: 8px; }
+.menu-font { font-size: 18px; }
+
 
 .banner {
 	background: lightblue;
@@ -65,9 +71,9 @@ footer {
 }
 .footer-nav-link {
 	position: relative;
-	font-size: 16px;
 	padding-left: 16px;
 	padding-right: 16px;
+	font-size: 16px;
 }
 
 
@@ -107,7 +113,8 @@ footer {
 }
 
 .hamburger-nav-role {
-	padding: 20px 20px;
+	margin: 32px;
+	padding-top: 2px;
 }
 
 .hamburger-nav-role-link {
@@ -144,7 +151,6 @@ footer {
 	z-index: 1;
 	border-radius: 10%;
 	right: 16px;
-	font-size: 16px;
 }
 
 .dropdown-item {
@@ -168,6 +174,8 @@ footer {
 .sidebar { position: relative; top: 6px; height: 90%; width: 300px; box-shadow: 0px 4px 16px 3px rgba(0,0,0,0.2); overflow-y: scroll; }
 .sidebar-item { margin: 32px; }
 .sidebar-item a { text-decoration: none }
+.sidebar-title { margin-top: 34px; margin-bottom: 34px; margin-left: 32px; margin-left: 32px; text-decoration: none; }
+.sidebar-title a { text-decoration: none }
 .add-button { height: 28px; text-align: center; line-height: 100%; border: none; }
 .small-button {height: 16px; width: 16px; }
 
@@ -177,5 +185,4 @@ footer {
 .form-item { margin-top: 16px; display: inline-block; }
 .form-input-text { width: 800px; }
 
-.selectable:hover { background-color: #ddd; cursor: pointer; }
-.h-divider { margin-left: 8px; margin-right: 8px; }
+
