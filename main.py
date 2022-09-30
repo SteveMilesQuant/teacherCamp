@@ -208,7 +208,7 @@ async def student_post_update(request: Request, student_id: int):
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "students.html", template_args)
     app.user.load_students()
-    student = app.user.get(student_id)
+    student = app.user.students.get(student_id)
     if student is not None:
         form = await request.form()
         student_name = form.get('student_name')
@@ -276,7 +276,7 @@ async def programs_post_new(request: Request, title: str = Form(), from_grade: i
         db = app.db,
         title = title,
         grade_range = (from_grade, to_grade),
-        tags = tags
+        tags = tags.lower()
     )
     app.user.load_programs()
     app.user.programs[new_program.id] = new_program

@@ -39,7 +39,7 @@
     {% if user_id is not none %}
       {% for role in roles %}
         <div class="hamburger-nav-role">
-          {% if roles|length > 1 %} <h2>{{role.name|title}}</h2> {% endif %}
+          {% if roles|length > 1 %} <h1>{{role.name|title}}</h1> {% endif %}
           {% for link_tgt, link_label in role.permissible_endpoints.items() %}
             <div class="hamburger-nav-role-link menu-font"><a class='selectable' href="{{link_tgt}}">{{link_label}}</a></div>
           {% endfor %}
