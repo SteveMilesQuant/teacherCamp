@@ -203,7 +203,7 @@ class User(BaseModel):
             self.create()
 
     def load_students(self):
-        for student_id, student in self.students.items():
+        for student_id in self.students.keys():
             self.students[student_id] = Student(id=student_id, db=self.db)
 
     def remove_student(self, student_id: int):

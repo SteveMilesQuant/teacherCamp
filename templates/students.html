@@ -7,47 +7,46 @@
     {% for id, name in student_names.items() %}
       <div class='sidebar-item menu-font'><a class='selectable' href="/students/{{id}}">{{name}}</a></div>
     {% endfor %}
-    <div class='sidebar-item'><button class='add-button selectable' onclick="unhideElem('student-form')">+</button></div>
+    <div class='sidebar-item'><button class='add-button selectable menu-font' onclick="unhideElem('student-form')">+</button></div>
   </span>
   {% if current_student is not none %}
     <span class='content-body'>
-        <div class='content-item'><h1>Student Profile</h1></div>
-        <hr class='content-item h-divider'></hr>
-        <div class='content-item'>
-          <div id='student-name'>
-            <span>Name: {{current_student.name}}</span>
-            <span><button class='selectable' onclick="swapHidden('student-name', 'edit-student-name')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
-          </div>
-          <div id='edit-student-name' hidden>
-            <form  method='post' action='/students/{{current_student.id}}'>
-              <label for='student_name'>Name:</label>
-              <input type='text' name='student_name' value="{{current_student.name}}">
-              <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-              <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-name', 'student-name')" />
-            </form>
-          </div>
+      <div class='content-item'><h1>Student Profile</h1></div>
+      <hr class='content-item h-divider'></hr>
+      <div class='content-item'>
+        <div id='student-name'>
+          <span>Name: {{current_student.name}}</span>
+          <span><button class='selectable' onclick="swapHidden('student-name', 'edit-student-name')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
-        <div class='content-item'>
-          <div id='student-birthdate'>
-            <span>Birthdate: {{current_student.birthdate}}</span>
-            <span><button class='selectable' onclick="swapHidden('student-birthdate', 'edit-student-birthdate')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
-          </div>
-          <div id='edit-student-birthdate' hidden>
-            <form  method='post' action='/students/{{current_student.id}}'>
-              <label for='student_birthdate'>Birthdate:</label>
-              <input type='date' name='student_birthdate' value="{{current_student.birthdate}}">
-              <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-              <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-birthdate', 'student-birthdate')" />
-            </form>
-          </div>
+        <div id='edit-student-name' hidden>
+          <form  method='post' action='/students/{{current_student.id}}'>
+            <label for='student_name'>Name:</label>
+            <input type='text' name='student_name' value="{{current_student.name}}">
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-name', 'student-name')" />
+          </form>
         </div>
-        <div class='content-item'>
-          <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_student.name}}?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
-            <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
-            <span>Delete Student</span>
-          </button>
+      </div>
+      <div class='content-item'>
+        <div id='student-birthdate'>
+          <span>Birthdate: {{current_student.birthdate}}</span>
+          <span><button class='selectable' onclick="swapHidden('student-birthdate', 'edit-student-birthdate')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
-      </span>
+        <div id='edit-student-birthdate' hidden>
+          <form  method='post' action='/students/{{current_student.id}}'>
+            <label for='student_birthdate'>Birthdate:</label>
+            <input type='date' name='student_birthdate' value="{{current_student.birthdate}}">
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-birthdate', 'student-birthdate')" />
+          </form>
+        </div>
+      </div>
+      <div class='content-item'>
+        <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_student.name}}?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
+          <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
+          <span>Delete Student</span>
+        </button>
+      </div>
     </span>
     <div class="v-divider"></div>
     <span class='content-body'>

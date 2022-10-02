@@ -54,7 +54,7 @@ create table program (
 	from_grade INTEGER,
 	to_grade INTEGER,
 	tags TEXT,
-	description TEXT	
+	description TEXT
 );
 
 DROP TABLE IF EXISTS user_x_programs;
@@ -63,5 +63,21 @@ create table user_x_programs (
 	program_id INTEGER NOT NULL,
 	FOREIGN KEY (user_id) REFERENCES user(id),
 	FOREIGN KEY (program_id) REFERENCES program(id)
+);
+
+DROP TABLE IF EXISTS level;
+create table level (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	title TEXT,
+	description TEXT,
+	list_index int
+);
+
+DROP TABLE IF EXISTS program_x_levels;
+create table program_x_levels (
+	program_id INTEGER NOT NULL,
+	level_id INTEGER NOT NULL,
+	FOREIGN KEY (program_id) REFERENCES program(id),
+	FOREIGN KEY (level_id) REFERENCES level(id)
 );
 

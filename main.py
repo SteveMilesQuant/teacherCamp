@@ -1,4 +1,4 @@
-import os, aiohttp, json, db
+import os, aiohttp, json, db, copy
 from fastapi import FastAPI, Request, APIRouter, Form
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -255,16 +255,32 @@ async def programs_get_all(request: Request):
     return await programs_get(request)
 
 
-@api_router.get("/programs/{program_id}")
-async def programs_get_one(request: Request, program_id: int):
+async def programs_get_one(request: Request, program_id: int, level_id = None):
     template_args = await build_base_html_args(request)
     current_program = None
+    current_level = None
     if app.user is not None:
-        current_program = app.user.programs.get(program_id)
+        current_program = copy.deepcopy(app.user.programs.get(program_id))
         if current_program is None:
             return RedirectResponse(url='/programs')
+        current_program.db = None
+        for level in current_program.levels.values():
+            level.db = None
+    if current_program is not None and level_id is not None:
+        current_level = current_program.get(level_id)
+        if current_level is None:
+            return RedirectResponse(url=f'/programs/{program_id}')
     template_args['current_program'] = current_program
+    template_args['current_level']  = current_level
     return resolve_auth_endpoint(request, "program.html", template_args, permission_url_path='/programs')
+
+@api_router.get("/programs/{program_id}")
+async def programs_get_one_nolevel(request: Request, program_id: int):
+    return await programs_get_one(request, program_id, level_id = None)
+
+@api_router.get("/programs/{program_id}/{level_id}")
+async def programs_get_one_withlevel(request: Request, program_id: int, level_id: int):
+    return await programs_get_one(request, program_id, level_id)
 
 
 @api_router.post("/programs")
