@@ -47,7 +47,7 @@ class Level(BaseModel):
     def delete(self):
         delete_stmt = f'''
             DELETE FROM program_x_levels
-                WHERE program_id = {self.id};
+                WHERE level_id = {self.id};
         '''
         execute_write(self.db, delete_stmt)
         delete_stmt = f'''
@@ -175,7 +175,8 @@ class Program(BaseModel):
         deep_copy = copy.deepcopy(self)
         self.db = save_db
         for level in self.levels.values():
-            level.db = save_db
+            if level is not None:
+                level.db = save_db
         return deep_copy
 
 
