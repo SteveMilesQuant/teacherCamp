@@ -1,4 +1,4 @@
-import os, aiohttp, json, db, copy
+import os, aiohttp, json, db
 from fastapi import FastAPI, Request, APIRouter, Form
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
 from user import load_all_roles, User
 from student import Student
-from program import Program
+from program import Program, Level
 from datetime import date
 
 
@@ -164,9 +164,9 @@ async def students_get(request: Request, selected_id = None):
     current_student = None
     if app.user is not None:
         app.user.load_students()
-        if selected_id is not None:
-            current_student = copy.deepcopy(app.user.students.get(selected_id))
-            current_student.db = None # don't let HTML do SQL directly, if that's even possible
+        student = app.user.students.get(selected_id)
+        if student is not None:
+            current_student = student.deepcopy()
         for student_id, student in app.user.students.items():
             student_names[student_id] = student.name
     template_args['student_names'] = student_names
@@ -243,9 +243,8 @@ async def programs_get(request: Request):
     programs = {}
     if app.user is not None:
         app.user.load_programs()
-        programs = copy.deepcopy(app.user.programs)
-        for program in programs.values():
-            program.db = None # don't let HTML do SQL directly, if that's even possible
+        for program in app.user.programs.values():
+            programs[program.id] = program.deepcopy()
     template_args['programs'] = programs
     return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
 
@@ -260,23 +259,25 @@ async def programs_get_one(request: Request, program_id: int, level_id = None):
     current_program = None
     current_level = None
     if app.user is not None:
-        current_program = copy.deepcopy(app.user.programs.get(program_id))
-        if current_program is None:
+        program = app.user.programs.get(program_id)
+        if program is None:
             return RedirectResponse(url='/programs')
-        current_program.db = None
-        for level in current_program.levels.values():
-            level.db = None
+        program.load_levels()
+        current_program = program.deepcopy()
     if current_program is not None and level_id is not None:
-        current_level = current_program.get(level_id)
-        if current_level is None:
+        level = current_program.levels.get(level_id)
+        if level is None:
             return RedirectResponse(url=f'/programs/{program_id}')
+        current_level = level.deepcopy()
     template_args['current_program'] = current_program
     template_args['current_level']  = current_level
     return resolve_auth_endpoint(request, "program.html", template_args, permission_url_path='/programs')
 
+
 @api_router.get("/programs/{program_id}")
 async def programs_get_one_nolevel(request: Request, program_id: int):
-    return await programs_get_one(request, program_id, level_id = None)
+    return await programs_get_one(request, program_id, level_id=None)
+
 
 @api_router.get("/programs/{program_id}/{level_id}")
 async def programs_get_one_withlevel(request: Request, program_id: int, level_id: int):
@@ -297,21 +298,90 @@ async def programs_post_new(request: Request, title: str = Form(), from_grade: i
     app.user.load_programs()
     app.user.programs[new_program.id] = new_program
     app.user.update()
-    return await programs_get(request)
+    return await programs_get_one(request, new_program.id, level_id=None)
 
 
 @api_router.post("/programs/{program_id}")
-async def programs_post_update(request: Request):
+async def program_post_update(request: Request, program_id: int):
     if not check_auth(request, permission_url_path='/programs'):
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
-    return await programs_get(request)
+    program = app.user.programs.get(program_id)
+    if program is not None:
+        form = await request.form()
+        level_title = form.get('level_title')
+        if level_title is None:
+            # Updating a program
+            program_title = form.get('program_title')
+            if program_title is not None:
+                program.title = program_title
+            program.update()
+        else:
+            # New level
+            program.load_levels()
+            max_index = 0
+            for level in program.levels.values():
+                max_index = max(max_index, level.list_index)
+            level_desc = form.get('level_desc')
+            new_level = Level(
+                db = app.db,
+                title = level_title,
+                description = level_desc,
+                list_index = max_index + 1
+            )
+            program.levels[new_level.id] = new_level
+    return await programs_get_one(request, program_id, level_id=None)
+
+
+@api_router.post("/programs/{program_id}/{level_id}")
+async def level_post_update(request: Request, program_id: int, level_id: int):
+    if not check_auth(request, permission_url_path='/programs'):
+        template_args = await build_base_html_args(request)
+        return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
+    program = app.user.programs.get(program_id)
+    if program is not None:
+        program.load_levels()
+        selected_level = program.levels.get(level_id)
+        if selected_level is not None:
+            form = await request.form()
+            level_title = form.get('level_title')
+            level_desc = form.get('level_desc')
+            level_list_index = form.get('level_list_index')
+            if level_title is not None:
+                selected_level.title = level_title
+            if level_desc is not None:
+                selected_level.description = level_desc
+            if level_list_index is not None and level_list_index != selected_level.list_index:
+                for level in program.levels.values():
+                    if level_list_index <= level.list_index < selected_level.list_index:
+                        level.list_index = level.list_index + 1
+                        level.update()
+                    elif selected_level.list_index < level.list_index < level_list_index:
+                        level.list_index = level.list_index - 1
+                        level.update()
+                selected_level.list_index = level_list_index
+            selected_level.update()
+    return await programs_get_one(request, program_id, level_id)
 
 
 @api_router.delete("/programs/{program_id}")
 async def program_delete(request: Request, program_id: int):
     if check_auth(request, permission_url_path='/programs'):
         app.user.remove_program(program_id)
+
+
+@api_router.delete("/programs/{program_id}/{level_id}")
+async def level_delete(request: Request, program_id: int, level_id: int):
+    if check_auth(request, permission_url_path='/programs'):
+        program = app.user.get(program_id)
+        if program is not None:
+            program.load_levels()
+            del_level = program.levels.pop(level_id)
+            if del_level is not None:
+                for level in program.levels.values():
+                    if level.list_index > del_level.list_index:
+                        level.list_index = level.list_index - 1
+                del_level.delete()
 
 
 @api_router.get("/members")

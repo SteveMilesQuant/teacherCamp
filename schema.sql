@@ -70,7 +70,7 @@ create table level (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	title TEXT,
 	description TEXT,
-	list_index int
+	list_index INTEGER
 );
 
 DROP TABLE IF EXISTS program_x_levels;

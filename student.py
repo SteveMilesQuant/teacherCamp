@@ -1,3 +1,4 @@
+import copy
 from db import execute_read, execute_write
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
@@ -63,4 +64,12 @@ class Student(BaseModel):
             self.create()
         elif not self.load():
             self.create()
+
+    def deepcopy(self):
+        save_db = self.db
+        self.db = None
+        deep_copy = copy.deepcopy(self)
+        self.db = save_db
+        return deep_copy
+
 

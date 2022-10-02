@@ -1,3 +1,4 @@
+import copy
 from enum import Enum
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
@@ -8,7 +9,7 @@ class Level(BaseModel):
     id: Optional[int]
     title: Optional[str]
     description: Optional[str] = ''
-    list_index: Optional[int]
+    list_index: Optional[int] = 0
     db: Any
 
     def load(self) -> bool:
@@ -29,7 +30,7 @@ class Level(BaseModel):
     def create(self):
         insert_stmt = f'''
             INSERT INTO level (title, description, list_index)
-                VALUES ("{self.title}", {self.grade_range[0]}, {self.grade_range[1]}, "{self.tags}", "{self.description}", {self.list_index});
+                VALUES ("{self.title}", "{self.description}", {self.list_index});
         '''
         self.id = execute_write(self.db, insert_stmt)
 
@@ -61,6 +62,13 @@ class Level(BaseModel):
             self.create()
         elif not self.load():
             self.create()
+
+    def deepcopy(self):
+        save_db = self.db
+        self.db = None
+        deep_copy = copy.deepcopy(self)
+        self.db = save_db
+        return deep_copy
 
 
 class Program(BaseModel):
@@ -130,6 +138,7 @@ class Program(BaseModel):
             execute_write(self.db, insert_stmt)
 
     def delete(self):
+        # Levels are not shared across programs, so they are safe to delete when we delete the program
         delete_stmt = f'''
             DELETE FROM user_x_programs
                 WHERE program_id = {self.id};
@@ -156,4 +165,17 @@ class Program(BaseModel):
     def load_levels(self):
         for level_id in self.levels.keys():
             self.levels[level_id] = Level(id=level_id, db=self.db)
+
+    def deepcopy(self):
+        save_db = self.db
+        self.db = None
+        for level in self.levels.values():
+            if level is not None:
+                level.db = None
+        deep_copy = copy.deepcopy(self)
+        self.db = save_db
+        for level in self.levels.values():
+            level.db = save_db
+        return deep_copy
+
 
