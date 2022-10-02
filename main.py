@@ -165,7 +165,7 @@ async def students_get(request: Request, selected_id = None):
     if app.user is not None:
         app.user.load_students()
         if selected_id is not None:
-            current_student = app.user.students.get(selected_id).copy()
+            current_student = copy.deepcopy(app.user.students.get(selected_id))
             current_student.db = None # don't let HTML do SQL directly, if that's even possible
         for student_id, student in app.user.students.items():
             student_names[student_id] = student.name
@@ -243,7 +243,7 @@ async def programs_get(request: Request):
     programs = {}
     if app.user is not None:
         app.user.load_programs()
-        programs = app.user.programs.copy()
+        programs = copy.deepcopy(app.user.programs)
         for program in programs.values():
             program.db = None # don't let HTML do SQL directly, if that's even possible
     template_args['programs'] = programs
