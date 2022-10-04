@@ -8,7 +8,7 @@
       {% for program in programs.values() %}
         <tr onclick='redirect("/programs/{{program.id}}");'>
           <td>{{program.title}}</td>
-          <td>{{program.grade_range[0]}} to {{program.grade_range[1]}}</td>
+          <td>{{program.grade_range[0].html_display()}} to {{program.grade_range[1].html_display()}}</td>
           <td>{{program.tags}}</td>
           <td></td>
           <td>
@@ -27,17 +27,15 @@
           <label class='form-item' for='title'>Title:</label><br>
           <input class='form-item form-input-text' type='text' name='title' required /><br>
           <label class='form-item' for='from_grade'>From grade:</label>
-          <select class='form-item' type='select' name='from_grade' value='6' required>
-            <option value="0">K</option>
-            {% for grade in range(1, 13) %}
-              <option value="{{grade}}" {% if grade == 6 %}selected{% endif %}>{{grade}}</option>
+          <select class='form-item' type='select' name='from_grade' required>
+            {% for grade in grade_levels %}
+              <option value="{{grade.value}}" {% if grade.value == 6 %}selected{% endif %}>{{grade.html_display()}}</option>
             {% endfor %}
           </select><br>
           <label class='form-item' for='to_grade'>To grade:</label>
-          <select class='form-item' name='to_grade' value='8' required>
-            <option value="0">K</option>
-            {% for grade in range(1, 13) %}
-              <option value="{{grade}}" {% if grade == 8 %}selected{% endif %}>{{grade}}</option>
+          <select class='form-item' name='to_grade' required>
+            {% for grade in grade_levels %}
+              <option value="{{grade.value}}" {% if grade.value == 8 %}selected{% endif %}>{{grade.html_display()}}</option>
             {% endfor %}
           </select><br>
           <label class='form-item' for='tags'>Tags:</label><br>

@@ -5,6 +5,27 @@ from typing import Dict, List, Optional, Any
 from db import execute_read, execute_write
 
 
+class GradeLevel(Enum):
+    K = 0
+    First = 1
+    Second = 2
+    Third = 3
+    Fourth = 4
+    Fifth = 5
+    Sixth = 6
+    Seventh = 7
+    Eighth = 8
+    Freshman = 9
+    Sophpmore = 10
+    Junior = 11
+    Senior = 12
+
+    def html_display(self) -> str:
+        if self.value == 0:
+            return str(self.name)
+        return str(self.value)
+
+
 class Level(BaseModel):
     id: Optional[int]
     title: Optional[str]
@@ -74,7 +95,7 @@ class Level(BaseModel):
 class Program(BaseModel):
     id: Optional[int]
     title: Optional[str]
-    grade_range: Optional[tuple[int,int]]
+    grade_range: Optional[tuple[GradeLevel,GradeLevel]]
     tags: Optional[str] = ''
     description: Optional[str] = ''
     db: Any
@@ -91,7 +112,7 @@ class Program(BaseModel):
             return False;
         row = result[0] # should only be one
         self.title = row['title']
-        self.grade_range = (row['from_grade'], row['to_grade'])
+        self.grade_range = (GradeLevel(row['from_grade']), GradeLevel(row['to_grade']))
         self.tags = row['tags']
         self.description = row['description']
 
@@ -110,7 +131,7 @@ class Program(BaseModel):
     def create(self):
         insert_stmt = f'''
             INSERT INTO program (title, from_grade, to_grade, tags, description)
-                VALUES ("{self.title}", {self.grade_range[0]}, {self.grade_range[1]}, "{self.tags}", "{self.description}");
+                VALUES ("{self.title}", {self.grade_range[0].value}, {self.grade_range[1].value}, "{self.tags}", "{self.description}");
         '''
         self.id = execute_write(self.db, insert_stmt)
 
@@ -118,8 +139,8 @@ class Program(BaseModel):
         update_stmt = f'''
             UPDATE program
                 SET title="{self.title}",
-                    from_grade={self.grade_range[0]},
-                    to_grade={self.grade_range[1]},
+                    from_grade={self.grade_range[0].value},
+                    to_grade={self.grade_range[1].value},
                     tags="{self.tags}",
                     description="{self.description}"
                 WHERE id = {self.id};

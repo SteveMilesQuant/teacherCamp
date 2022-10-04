@@ -4,9 +4,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
-from user import load_all_roles, User
+from user import User, load_all_roles
 from student import Student
-from program import Program, Level
+from program import Program, Level, GradeLevel
 from datetime import date
 
 
@@ -43,6 +43,7 @@ async def build_base_html_args(request: Request) -> dict:
         template_args['user_id'] = None
         template_args['user_name'] = None
         template_args['roles'] = None
+        template_args['grade_levels'] = None
     else:
         template_args['user_id'] = app.user.id
         template_args['user_name'] = app.user.full_name
@@ -50,6 +51,7 @@ async def build_base_html_args(request: Request) -> dict:
         for role_name in app.user.roles:
             current_roles.append(app.roles[role_name])
         template_args['roles'] = current_roles
+        template_args['grade_levels'] = GradeLevel
     return template_args
 
 
@@ -295,7 +297,7 @@ async def programs_post_new(request: Request, title: str = Form(), from_grade: i
     new_program = Program(
         db = app.db,
         title = title,
-        grade_range = (from_grade, to_grade),
+        grade_range = (GradeLevel(from_grade), GradeLevel(to_grade)),
         tags = tags
     )
     app.user.load_programs()
@@ -326,9 +328,9 @@ async def program_post_update(request: Request, program_id: int):
             if program_tags is not None:
                 program.tags = program_tags.lower()
             if program_from_grade is not None:
-                program.grade_range[0] = program_from_grade
+                program.grade_range[0] = GradeLevel(program_from_grade)
             if program_to_grade is not None:
-                program.grade_range[1] = program_to_grade
+                program.grade_range[1] = GradeLevel(program_to_grade)
             if program_desc is not None:
                 program.description = program_desc
             program.update()
