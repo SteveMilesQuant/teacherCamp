@@ -187,7 +187,7 @@ async def students_get_one(request: Request, student_id: int):
 
 
 @api_router.post("/students")
-async def student_post_new(request: Request, student_name: str = Form(), student_birthdate: date = Form()):
+async def student_post_new(request: Request, student_name: str = Form(), student_birthdate: date = Form(), student_grade_level: int = Form()):
     if not check_auth(request):
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "students.html", template_args)
@@ -196,7 +196,8 @@ async def student_post_new(request: Request, student_name: str = Form(), student
         id = None,
         db = app.db,
         name = student_name,
-        birthdate = student_birthdate
+        birthdate = student_birthdate,
+        grade_level = GradeLevel(student_grade_level)
     )
     app.user.add_student(new_student.id)
     student_id = new_student.id
@@ -214,7 +215,8 @@ async def student_post_update(request: Request, student_id: int):
         form = await request.form()
         student.update_basic(
             name = form.get('student_name'),
-            birthdate_str = form.get('student_birthdate'),
+            birthdate = form.get('student_birthdate'),
+            grade_level = form.get('student_grade_level'),
             school = None # Will do later with Google maps API
         )
     return await students_get(request=request, selected_id=student_id)

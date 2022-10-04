@@ -42,6 +42,24 @@
         </div>
       </div>
       <div class='content-item'>
+        <div id='student-gradelevel'>
+          <span><strong>Current grade level:</strong> {{current_student.grade_level.html_display()}}</span>
+          <span><button class='selectable' onclick="swapHidden('student-gradelevel', 'edit-student-gradelevel')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
+        </div>
+        <div id='edit-student-gradelevel' hidden>
+          <form  method='post' action='/students/{{current_student.id}}'>
+            <label for='student_grade_level'><strong>Current grade level:</strong></label>
+            <select class='form-item' type='select' name='student_grade_level' required>
+              {% for grade in grade_levels %}
+                <option value="{{grade.value}}" {% if grade.value == current_student.grade_level.value %}selected{% endif %}>{{grade.html_display()}}</option>
+              {% endfor %}
+            </select>
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-gradelevel', 'student-gradelevel')" />
+          </form>
+        </div>
+      </div>
+      <div class='content-item'>
         <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_student.name}}?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
           <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
           <span><strong>Delete Student</strong></span>
@@ -58,10 +76,16 @@
     <div class='pop-up-item'>
       <h1>New Student</h1>
       <form method='post' action='/students'>
-        <label class='form-item' for='student_name'>Name:</label><br>
+        <label class='form-item' for='student_name'><strong>Name:</strong></label><br>
         <input class='form-item form-input-text' type='text' name='student_name' required><br>
-        <label class='form-item' for='student_birthdate'>Birthdate:</label><br>
+        <label class='form-item' for='student_birthdate'><strong>Birthdate:</strong></label><br>
         <input class='form-item' type='date' name='student_birthdate' required><br>
+        <label class='form-item' for='student_grade_level'><strong>Current grade level:</strong></label><br>
+        <select class='form-item' type='select' name='student_grade_level' required>
+          {% for grade in grade_levels %}
+            <option value="{{grade.value}}" {% if grade.value == 6 %}selected{% endif %}>{{grade.html_display()}}</option>
+          {% endfor %}
+        </select><br>
         <input class='form-item small-button selectable' type="image" src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
         <a class='form-item selectable' href='/students'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
       </form>
