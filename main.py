@@ -346,26 +346,15 @@ async def level_post_update(request: Request, program_id: int, level_id: int):
     program = app.user.programs.get(program_id)
     if program is not None:
         program.load_levels()
-        selected_level = program.levels.get(level_id)
-        if selected_level is not None:
+        level = program.levels.get(level_id)
+        if level is not None:
             form = await request.form()
-            level_title = form.get('level_title')
-            level_desc = form.get('level_desc')
-            level_list_index = form.get('level_list_index')
-            if level_title is not None:
-                selected_level.title = level_title
-            if level_desc is not None:
-                selected_level.description = level_desc
-            if level_list_index is not None and level_list_index != selected_level.list_index:
-                for level in program.levels.values():
-                    if level_list_index <= level.list_index < selected_level.list_index:
-                        level.list_index = level.list_index + 1
-                        level.update()
-                    elif selected_level.list_index < level.list_index < level_list_index:
-                        level.list_index = level.list_index - 1
-                        level.update()
-                selected_level.list_index = level_list_index
-            selected_level.update()
+            level.update_basic(
+                list_of_levels = program.levels,
+                title = form.get('level_title'),
+                description = form.get('level_desc'),
+                list_index = form.get('level_list_index')
+            )
     return await programs_get_one(request, program_id, level_id)
 
 

@@ -33,7 +33,7 @@ class Level(BaseModel):
     list_index: Optional[int] = 0
     db: Any
 
-    def load(self) -> bool:
+    def _load(self) -> bool:
         select_stmt = f'''
             SELECT *
                 FROM level
@@ -48,14 +48,49 @@ class Level(BaseModel):
         self.list_index = row['list_index']
         return True
 
-    def create(self):
+    def _create(self):
         insert_stmt = f'''
             INSERT INTO level (title, description, list_index)
                 VALUES ("{self.title}", "{self.description}", {self.list_index});
         '''
         self.id = execute_write(self.db, insert_stmt)
 
-    def update(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.id is None:
+            self._create()
+        elif not self._load():
+            self._create()
+
+    def update_basic(self,
+            title: Optional[str] = None,
+            description: Optional[str] = None,
+            list_index: Optional[int] = None,
+            list_of_levels: Optional[Dict] = None # Must provide if updating list_index
+        ):
+        if title is not None:
+            self.title = title
+        if description is not None:
+            self.description = description
+        if list_index is not None and list_index != self.list_index:
+            assert list_of_levels is not None
+            for level in list_of_levels.values():
+                if level.id != self.id:
+                    do_update = False
+                    if list_index <= level.list_index < self.list_index:
+                        level.list_index = level.list_index + 1
+                        do_update = True
+                    elif self.list_index < level.list_index < list_index:
+                        level.list_index = level.list_index - 1
+                        do_update = True
+                    if do_update:
+                        update_stmt = f'''
+                            UPDATE level
+                                SET list_index={level.list_index}
+                                WHERE id = {level.id};
+                        '''
+                        execute_write(self.db, update_stmt)
+            self.list_index = list_index
         update_stmt = f'''
             UPDATE level
                 SET title="{self.title}",
@@ -76,13 +111,6 @@ class Level(BaseModel):
                 WHERE id = {self.id};
         '''
         execute_write(self.db, delete_stmt)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        if self.id is None:
-            self.create()
-        elif not self.load():
-            self.create()
 
     def deepcopy(self):
         save_db = self.db
@@ -143,12 +171,12 @@ class Program(BaseModel):
             self._create()
 
     def update_basic(self,
-        title: Optional[str] = None,
-        from_grade: Optional[int] = None,
-        to_grade: Optional[int] = None,
-        tags: Optional[str] = None,
-        description: Optional[str] = None
-    ):
+            title: Optional[str] = None,
+            from_grade: Optional[int] = None,
+            to_grade: Optional[int] = None,
+            tags: Optional[str] = None,
+            description: Optional[str] = None
+        ):
         if title is not None:
             self.title = title
         if from_grade is not None:
@@ -206,8 +234,10 @@ class Program(BaseModel):
         if del_level is not None:
             for level in self.levels.values():
                 if level.list_index > del_level.list_index:
-                    level.list_index = level.list_index - 1
-                    level.update()
+                    level.update_basic(
+                        list_of_levels = self.levels,
+                        list_index = level.list_index - 1
+                    )
             del_level.delete()
 
     def get_next_level_index(self):
