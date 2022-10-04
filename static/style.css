@@ -171,6 +171,7 @@ footer {
 .content-body { height: 100%; margin: 32px; }
 .content-body a { text-decoration: none; }
 .content-item { margin-top: 32px; margin-left: 32px; width: 100%; }
+.content-subitem { margin-top: 16px; }
 .sidebar { position: relative; top: 6px; height: 90%; min-width: 300px; box-shadow: 0px 4px 16px 3px rgba(0,0,0,0.2); overflow-y: scroll; }
 .sidebar-item { margin: 32px; }
 .sidebar-item a { text-decoration: none }
@@ -184,6 +185,7 @@ footer {
 
 .form-item { margin-top: 16px; display: inline-block; }
 .form-input-text { width: 800px; }
-.form-input-longtext { width: 800px; height: 200px; }
-
+.form-input-longtext { position: relative; width: 99%; height: 1400px; border: none; top: -692px; overflow-x: scroll; }
+.longtext-box { width: 1000px; height: 500px; background-color: white; border: 2px solid #ddd; overflow: hidden; resize: none; }
+.longtext-box:focus, .form-input-longtext:focus { outline: none; }
 

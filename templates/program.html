@@ -54,14 +54,14 @@
         <div id='program-desc'>
           <span><strong>Description:</strong></span>
           <span><button class='selectable' onclick="swapHidden('program-desc', 'edit-program-desc')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
-          <div><p>{{current_program.description}}</p></div>
+          <div class='content-subitem'><textarea wrap='soft' class='longtext-box'>{{current_program.description}}</textarea></div>
         </div>
         <div id='edit-program-desc' hidden>
           <form  method='post' action='/programs/{{current_program.id}}'>
             <label for='program_desc'><strong>Description:</strong></label>
             <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
             <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-program-desc', 'program-desc')" /><br><br>
-            <input type='text' class='form-input-longtext' name='program_desc' value="{{current_program.description}}">
+            <div class='longtext-box'><input type='text' class='form-input-longtext' name='program_desc' value="{{current_program.description}}"></div>
           </form>
         </div>
       </div>
@@ -71,11 +71,12 @@
       <div class='content-item'><h2>Level {{current_level.list_index}}: {{current_level.title}}</h2></div>
       <div class='content-item'>
         <div id='level-title'>
-          <span>Title: {{current_level.title}}</span>
+          <span><strong>Title:</strong> {{current_level.title}}</span>
           <span><button class='selectable' onclick="swapHidden('level-title', 'edit-level-title')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
         <div id='edit-level-title' hidden>
           <form  method='post' action='/programs/{{current_program.id}}/{{current_level.id}}'>
+            <label for='level_title'><strong>Title:</strong></label>
             <input type='text' name='level_title' value="{{current_level.title}}">
             <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
             <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-level-title', 'level-title')" />
@@ -85,24 +86,25 @@
       <div class='content-item'>
         <div id='level-desc'>
           <div>
-            <span>Description:</span>
+            <span><strong>Description:</strong></span>
             <span><button class='selectable' onclick="swapHidden('level-desc', 'edit-level-desc')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
           </div>
-          <div><p>{{current_level.description}}</p></div>
+          <div class='content-subitem'><textarea wrap='soft' class='longtext-box'>{{current_level.description}}</textarea></div>
         </div>
         <div id='edit-level-desc' hidden>
           <form method='post' action='/programs/{{current_program.id}}/{{current_level.id}}'>
-            <label for='level_desc'><h2>Description:</h2></label><br>
+            <label for='level_desc'><strong>Description:</strong></label><br>
             <input type='text' class='form-input-longtext' name='level_desc' value="{{current_level.description}}">
             <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-level-desc', 'level-desc')" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-level-desc', 'level-desc')" /><br><br>
+            <div class='longtext-box'><input type='text' class='form-input-longtext' name='level_desc' value="{{current_level.description}}"></div>
           </form>
         </div>
       </div>
       <div class='content-item'>
         <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_level.name}}?')) { deleteResource('/programs/{{current_program.id}}/{{current_level.id}}'); redirect('/programs/{{current_program.id}}'); }">
           <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
-          <span>Delete Level</span>
+          <span><strong>Delete Level</strong></span>
         </button>
       </div>
     </span>
@@ -111,10 +113,10 @@
     <div class='pop-up-item'>
       <h1>New Level for {{current_program.title}} </h1>
       <form method='post' action='/programs/{{current_program.id}}'>
-        <label class='form-item' for='level_title'>Title:</label><br>
+        <label class='form-item' for='level_title'><strong>Title:</strong></label><br>
         <input class='form-item form-input-text' type='text' name='level_title' required><br>
-        <label class='form-item' for='level_desc'>Description:</label><br>
-        <input class='form-item form-input-longtext' type='text' name='level_desc'><br>
+        <label class='form-item' for='level_desc'><strong>Description:</strong></label><br><br>
+        <div class='longtext-box'><input type='text' class='form-input-longtext' name='level_desc'></div><br>
         <input class='form-item small-button selectable' type="image" src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
         <a class='form-item selectable' href='/programs/{{current_program.id}}'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
       </form>
