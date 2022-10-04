@@ -318,39 +318,22 @@ async def program_post_update(request: Request, program_id: int):
         level_title = form.get('level_title')
         if level_title is None:
             # Updating a program
-            program_title = form.get('program_title')
-            program_tags = form.get('program_tags')
-            program_from_grade = form.get('program_from_grade')
-            program_to_grade = form.get('program_to_grade')
-            program_desc = form.get('program_desc')
-            if program_title is not None:
-                program.title = program_title
-            if program_tags is not None:
-                program.tags = program_tags.lower()
-            if program_from_grade is not None:
-                program.grade_range[0] = GradeLevel(program_from_grade)
-            if program_to_grade is not None:
-                program.grade_range[1] = GradeLevel(program_to_grade)
-            if program_desc is not None:
-                program.description = program_desc
-            program.update()
+            program.update_basic(
+                title = form.get('program_title'),
+                tags = form.get('program_tags'),
+                from_grade = form.get('program_from_grade'),
+                to_grade = form.get('program_to_grade'),
+                description = form.get('program_desc')
+            )
         else:
             # New level
-            program.load_levels()
-            max_index = 0
-            for level in program.levels.values():
-                max_index = max(max_index, level.list_index)
-            level_desc = form.get('level_desc')
-            if level_desc is None:
-                level_desc = ''
             new_level = Level(
                 db = app.db,
                 title = level_title,
-                description = level_desc,
-                list_index = max_index + 1
+                description = form.get('level_desc'),
+                list_index = program.get_next_level_index()
             )
-            program.levels[new_level.id] = new_level
-            program.update()
+            program.add_level(new_level)
             level_id = new_level.id
     return await programs_get_one(request, program_id, level_id=level_id)
 
@@ -397,15 +380,7 @@ async def level_delete(request: Request, program_id: int, level_id: int):
     if check_auth(request, permission_url_path='/programs'):
         program = app.user.programs.get(program_id)
         if program is not None:
-            program.load_levels()
-            del_level = program.levels.pop(level_id)
-            if del_level is not None:
-                for level in program.levels.values():
-                    if level.list_index > del_level.list_index:
-                        level.list_index = level.list_index - 1
-                        level.update()
-                del_level.delete()
-                program.load_levels()
+            program.remove_level(level_id)
 
 
 @api_router.get("/members")
