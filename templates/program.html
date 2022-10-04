@@ -43,7 +43,7 @@
       </div>
       <div class='content-item'>
         <div id='program-graderange'>
-          <span><strong>Current grade level:</strong> {{current_program.grade_range[0].html_display()}} to {{current_program.grade_range[1].html_display()}}</span>
+          <span><strong>Grade levels:</strong> {{current_program.grade_range[0].html_display()}} to {{current_program.grade_range[1].html_display()}}</span>
           <span><button class='selectable' onclick="swapHidden('program-graderange', 'edit-program-graderange')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
         <div id='edit-program-graderange' hidden>
