@@ -157,6 +157,7 @@ class Program(BaseModel):
         return True
 
     def _create(self):
+        self.tags = self.tags.lower()
         insert_stmt = f'''
             INSERT INTO program (title, from_grade, to_grade, tags, description)
                 VALUES ("{self.title}", {self.grade_range[0].value}, {self.grade_range[1].value}, "{self.tags}", "{self.description}");
@@ -184,7 +185,7 @@ class Program(BaseModel):
         if to_grade is not None:
             self.grade_range[1] = GradeLevel(to_grade)
         if tags is not None:
-            self.tags = tags
+            self.tags = tags.lower()
         if description is not None:
             self.description = description
         update_stmt = f'''
@@ -220,11 +221,11 @@ class Program(BaseModel):
         for level_id in self.levels.keys():
             self.levels[level_id] = Level(id=level_id, db=self.db)
 
-    def add_level(self, level: Level):
-        self.levels[level.id] = level
+    def add_level(self, level_id: int):
+        self.levels[level_id] = None
         insert_stmt = f'''
             INSERT INTO program_x_levels (program_id, level_id)
-                VALUES ({self.id}, "{level.id}");
+                VALUES ({self.id}, "{level_id}");
         '''
         execute_write(self.db, insert_stmt)
 

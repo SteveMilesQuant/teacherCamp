@@ -49,7 +49,7 @@ class User(BaseModel):
     students: Optional[Dict[int, Student]] = {}
     programs: Optional[Dict[int, Program]] = {}
 
-    def load(self) -> bool:
+    def _load(self) -> bool:
         if self.id is None:
             select_stmt = f'''
                 SELECT *
@@ -110,7 +110,7 @@ class User(BaseModel):
                 self.programs[row['program_id']] = None
         return True
 
-    def create(self):
+    def _create(self):
         insert_stmt = f'''
             INSERT INTO user (google_id, given_name, family_name, full_name, google_email, picture)
                 VALUES ({self.google_id}, "{self.given_name}", "{self.family_name}", "{self.full_name}", "{self.google_email}", "{self.picture}");
@@ -138,7 +138,28 @@ class User(BaseModel):
             '''
             execute_write(self.db, insert_stmt)
 
-    def update(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+        if not self._load():
+            self._create()
+
+    def update_basic(self,
+            given_name: Optional[str] = None,
+            family_name: Optional[str] = None,
+            full_name: Optional[str] = None,
+            google_email: Optional[str] = None,
+            picture: Optional[str] = None
+        ):
+        if given_name is not None:
+            self.given_name = given_name
+        if family_name is not None:
+            self.family_name = family_name
+        if full_name is not None:
+            self.full_name = full_name
+        if google_email is not None:
+            self.google_email = google_email
+        if picture is not None:
+            self.picture = picture
         update_stmt = f'''
             UPDATE user
                 SET given_name="{self.given_name}", family_name="{self.family_name}",
@@ -146,39 +167,6 @@ class User(BaseModel):
                 WHERE id = {self.id};
         '''
         execute_write(self.db, update_stmt)
-
-        delete_stmt = f'''
-            DELETE FROM user_x_roles WHERE user_id={self.id};
-        '''
-        execute_write(self.db, delete_stmt)
-        for role in self.roles:
-            insert_stmt = f'''
-                INSERT INTO user_x_roles (user_id, role)
-                    VALUES ({self.id}, "{role}");
-            '''
-            execute_write(self.db, insert_stmt)
-
-        delete_stmt = f'''
-            DELETE FROM user_x_students WHERE user_id={self.id};
-        '''
-        execute_write(self.db, delete_stmt)
-        for student_id in self.students.keys():
-            insert_stmt = f'''
-                INSERT INTO user_x_students (user_id, student_id)
-                    VALUES ({self.id}, "{student_id}");
-            '''
-            execute_write(self.db, insert_stmt)
-
-        delete_stmt = f'''
-            DELETE FROM user_x_programs WHERE user_id={self.id};
-        '''
-        execute_write(self.db, delete_stmt)
-        for program_id in self.programs.keys():
-            insert_stmt = f'''
-                INSERT INTO user_x_programs (user_id, program_id)
-                    VALUES ({self.id}, "{program_id}");
-            '''
-            execute_write(self.db, insert_stmt)
 
     def delete(self):
         delete_stmt = f'''
@@ -197,21 +185,45 @@ class User(BaseModel):
         '''
         execute_write(self.db, delete_stmt)
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        if not self.load():
-            self.create()
+    def add_role(self, role: str):
+        if role not in self.roles:
+            self.roles.append(role)
+            insert_stmt = f'''
+                INSERT INTO user_x_roles (user_id, role)
+                    VALUES ({self.id}, "{role}");
+            '''
+            execute_write(self.db, insert_stmt)
+
+    def remove_role(self, role: str):
+        del_role = self.roles.pop(role)
+        if del_role is not None:
+            delete_stmt = f'''
+                DELETE FROM user_x_roles WHERE user_id={self.id} and role="{role}";
+            '''
+            execute_write(self.db, delete_stmt)
 
     def load_students(self):
         for student_id in self.students.keys():
             self.students[student_id] = Student(id=student_id, db=self.db)
 
+    def add_student(self, student_id: int):
+        self.students[student_id] = None
+        insert_stmt = f'''
+            INSERT INTO user_x_students (user_id, student_id)
+                VALUES ({self.id}, "{student_id}");
+        '''
+        execute_write(self.db, insert_stmt)
+
     def remove_student(self, student_id: int):
         self.load_students()
-        student = self.students.get(student_id)
+        student = self.students.pop(student_id)
         if student is not None:
-            del self.students[student_id]
-            self.update()
+            delete_stmt = f'''
+                DELETE FROM user_x_students
+                    WHERE user_id = {self.id} and student_id = {student_id};
+            '''
+            execute_write(self.db, delete_stmt)
+
             # If no other guardians have this student, fully delete them
             select_stmt = f'''
                 SELECT student_id
@@ -226,12 +238,24 @@ class User(BaseModel):
         for program_id, program in self.programs.items():
             self.programs[program_id] = Program(id=program_id, db=self.db)
 
+    def add_program(self, program_id: int):
+        self.programs[program_id] = None
+        insert_stmt = f'''
+            INSERT INTO user_x_programs (user_id, program_id)
+                VALUES ({self.id}, "{program_id}");
+        '''
+        execute_write(self.db, insert_stmt)
+
     def remove_program(self, program_id: int):
         self.load_programs()
-        program = self.programs.get(program_id)
+        program = self.programs.pop(program_id)
         if program is not None:
-            del self.programs[program_id]
-            self.update()
+            delete_stmt = f'''
+                DELETE FROM user_x_programs
+                    WHERE user_id = {self.id} and program_id = {program_id};
+            '''
+            execute_write(self.db, delete_stmt)
+
             # If no other instructors have this program, fully delete it
             select_stmt = f'''
                 SELECT program_id

@@ -198,9 +198,8 @@ async def student_post_new(request: Request, student_name: str = Form(), student
         name = student_name,
         birthdate = student_birthdate
     )
-    app.user.students[new_student.id] = new_student
+    app.user.add_student(new_student.id)
     student_id = new_student.id
-    app.user.update()
     return await students_get(request=request, selected_id=student_id)
 
 
@@ -254,6 +253,7 @@ async def programs_get_one(request: Request, program_id: int, level_id = None):
     current_program = None
     current_level = None
     if app.user is not None:
+        app.user.load_programs()
         program = app.user.programs.get(program_id)
         if program is None:
             return RedirectResponse(url='/programs')
@@ -284,18 +284,13 @@ async def programs_post_new(request: Request, title: str = Form(), from_grade: i
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "programs.html", template_args)
     form = await request.form()
-    tags = form.get('tags')
-    if tags is not None:
-        tags = tags.lower()
     new_program = Program(
         db = app.db,
         title = title,
         grade_range = (GradeLevel(from_grade), GradeLevel(to_grade)),
-        tags = tags
+        tags = form.get('tags')
     )
-    app.user.load_programs()
-    app.user.programs[new_program.id] = new_program
-    app.user.update()
+    app.user.add_program(new_program.id)
     return await programs_get_one(request, new_program.id, level_id=None)
 
 
@@ -304,6 +299,7 @@ async def program_post_update(request: Request, program_id: int):
     if not check_auth(request, permission_url_path='/programs'):
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
+    app.user.load_programs()
     program = app.user.programs.get(program_id)
     level_id = None
     if program is not None:
@@ -326,7 +322,7 @@ async def program_post_update(request: Request, program_id: int):
                 description = form.get('level_desc'),
                 list_index = program.get_next_level_index()
             )
-            program.add_level(new_level)
+            program.add_level(new_level.id)
             level_id = new_level.id
     return await programs_get_one(request, program_id, level_id=level_id)
 
@@ -336,6 +332,7 @@ async def level_post_update(request: Request, program_id: int, level_id: int):
     if not check_auth(request, permission_url_path='/programs'):
         template_args = await build_base_html_args(request)
         return resolve_auth_endpoint(request, "programs.html", template_args, permission_url_path='/programs')
+    app.user.load_programs()
     program = app.user.programs.get(program_id)
     if program is not None:
         program.load_levels()
@@ -360,6 +357,7 @@ async def program_delete(request: Request, program_id: int):
 @api_router.delete("/programs/{program_id}/{level_id}")
 async def level_delete(request: Request, program_id: int, level_id: int):
     if check_auth(request, permission_url_path='/programs'):
+        app.user.load_programs()
         program = app.user.programs.get(program_id)
         if program is not None:
             program.remove_level(level_id)
