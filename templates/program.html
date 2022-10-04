@@ -42,6 +42,30 @@
         </div>
       </div>
       <div class='content-item'>
+        <div id='program-graderange'>
+          <span><strong>Current grade level:</strong> {{current_program.grade_range[0].html_display()}} to {{current_program.grade_range[1].html_display()}}</span>
+          <span><button class='selectable' onclick="swapHidden('program-graderange', 'edit-program-graderange')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
+        </div>
+        <div id='edit-program-graderange' hidden>
+          <form  method='post' action='/programs/{{current_program.id}}'>
+            <label for='program_from_grade'><strong>From grade:</strong></label>
+            <select class='form-item' type='select' name='program_from_grade' required>
+              {% for grade in grade_levels %}
+                <option value="{{grade.value}}" {% if grade.value == current_program.grade_range[0].value %}selected{% endif %}>{{grade.html_display()}}</option>
+              {% endfor %}
+            </select>
+            <label for='program_to_grade'><strong>To grade:</strong></label>
+            <select class='form-item' type='select' name='program_to_grade' required>
+              {% for grade in grade_levels %}
+                <option value="{{grade.value}}" {% if grade.value == current_program.grade_range[1].value %}selected{% endif %}>{{grade.html_display()}}</option>
+              {% endfor %}
+            </select>
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-program-graderange', 'program-graderange')" />
+          </form>
+        </div>
+      </div>
+      <div class='content-item'>
         <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_program.name}}?')) { deleteResource('/programs/{{current_program.id}}'); redirect('/programs'); }">
           <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
           <span><strong>Delete Program</strong></span>

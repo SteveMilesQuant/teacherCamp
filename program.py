@@ -123,7 +123,7 @@ class Level(BaseModel):
 class Program(BaseModel):
     id: Optional[int]
     title: Optional[str]
-    grade_range: Optional[tuple[GradeLevel,GradeLevel]]
+    grade_range: Optional[List[GradeLevel]]
     tags: Optional[str] = ''
     description: Optional[str] = ''
     db: Any
@@ -140,7 +140,7 @@ class Program(BaseModel):
             return False;
         row = result[0] # should only be one
         self.title = row['title']
-        self.grade_range = (GradeLevel(row['from_grade']), GradeLevel(row['to_grade']))
+        self.grade_range = [GradeLevel(row['from_grade']), GradeLevel(row['to_grade'])]
         self.tags = row['tags']
         self.description = row['description']
 
@@ -181,9 +181,19 @@ class Program(BaseModel):
         if title is not None:
             self.title = title
         if from_grade is not None:
-            self.grade_range[0] = GradeLevel(from_grade)
+            if type(from_grade) == str:
+                self.grade_range[0] = GradeLevel(int(from_grade))
+            elif type(from_grade) == int:
+                self.grade_range[0] = GradeLevel(from_grade)
+            else:
+                self.grade_range[0] = from_grade
         if to_grade is not None:
-            self.grade_range[1] = GradeLevel(to_grade)
+            if type(to_grade) == str:
+                self.grade_range[1] = GradeLevel(int(to_grade))
+            elif type(to_grade) == int:
+                self.grade_range[1] = GradeLevel(to_grade)
+            else:
+                self.grade_range[1] = to_grade
         if tags is not None:
             self.tags = tags.lower()
         if description is not None:
