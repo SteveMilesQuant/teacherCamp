@@ -213,18 +213,11 @@ async def student_post_update(request: Request, student_id: int):
     student = app.user.students.get(student_id)
     if student is not None:
         form = await request.form()
-        student_name = form.get('student_name')
-        student_birthdate_str = form.get('student_birthdate')
-        if student_birthdate_str is None:
-            student_birthdate = None
-        else:
-            year, month, day = student_birthdate_str.split('-')
-            student_birthdate = date(int(year), int(month), int(day))
-        if student_name is not None:
-            student.name = student_name
-        if student_birthdate is not None:
-            student.birthdate = student_birthdate
-        student.update()
+        student.update_basic(
+            name = form.get('student_name'),
+            birthdate_str = form.get('student_birthdate'),
+            school = None # Will do later with Google maps API
+        )
     return await students_get(request=request, selected_id=student_id)
 
 

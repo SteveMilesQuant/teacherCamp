@@ -12,7 +12,7 @@ class Student(BaseModel):
     school: Optional[str] = ""
     db: Any
 
-    def load(self) -> bool:
+    def _load(self) -> bool:
         select_stmt = f'''
             SELECT *
                 FROM student
@@ -28,7 +28,7 @@ class Student(BaseModel):
         self.school = row['school']
         return True
 
-    def create(self):
+    def _create(self):
         sql_date = self.birthdate.strftime('%Y-%m-%d')
         insert_stmt = f'''
             INSERT INTO student (name, birthdate, school)
@@ -36,7 +36,28 @@ class Student(BaseModel):
         '''
         self.id = execute_write(self.db, insert_stmt)
 
-    def update(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+        if self.id is None:
+            self._create()
+        elif not self._load():
+            self._create()
+
+    def update_basic(self,
+            name: Optional[str] = None,
+            birthdate: Optional[date] = None,
+            birthdate_str: Optional[str] = None, # String we get from form update
+            school: Optional[str] = None
+        ):
+        if name is not None:
+            self.name = name
+        if birthdate is not None:
+            self.birthdate = birthdate
+        elif birthdate_str is not None:
+            year, month, day = birthdate_str.split('-')
+            self.birthdate = date(int(year), int(month), int(day))
+        if school is not None:
+            self.school = school
         sql_date = self.birthdate.strftime('%Y-%m-%d')
         update_stmt = f'''
             UPDATE student
@@ -57,13 +78,6 @@ class Student(BaseModel):
                 WHERE id = {self.id};
         '''
         execute_write(self.db, delete_stmt)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        if self.id is None:
-            self.create()
-        elif not self.load():
-            self.create()
 
     def deepcopy(self):
         save_db = self.db
