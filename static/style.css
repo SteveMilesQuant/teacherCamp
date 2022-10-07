@@ -3,7 +3,7 @@ html, body { margin: 0px; height: 100%; }
 body { overflow: hidden; }
 h1 { font-size: 20px; }
 h2 { font-size: 18px; }
-p, textarea, input[type=text], option { font-size: 16px }
+p, textarea, input[type=text], input[type=date], option { font-size: 16px }
 button { border: none; font-size: 16px; }
 ::-webkit-scrollbar {
   display: none;

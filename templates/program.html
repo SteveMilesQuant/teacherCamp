@@ -13,6 +13,8 @@
   </span>
   {% if current_level is none %}
     <span class='content-body'>
+      <div class='content-item'><h1>Program</h1></div>
+      <hr class='h-divider'></hr>
       <div class='content-item'>
         <div id='program-title'>
           <span><strong>Title:</strong> {{current_program.title}}</span>
@@ -66,7 +68,7 @@
         </div>
       </div>
       <div class='content-item'>
-        <button class='selectable' onclick="if (confirm('Are you sure you want to delete program: {{current_program.title}}?')) { deleteResource('/programs/{{current_program.id}}'); redirect('/programs'); }">
+        <button class='selectable' onclick="if (confirm('Are you sure you want to delete program &quot;{{current_program.title}}&quot;?')) { deleteResource('/programs/{{current_program.id}}'); redirect('/programs'); }">
           <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
           <span><strong>Delete Program</strong></span>
         </button>
@@ -92,7 +94,8 @@
     </span>
   {% else %}
     <span class='content-body'>
-      <div class='content-item'><h2>Level {{current_level.list_index}}: {{current_level.title}}</h2></div>
+      <div class='content-item'><h1>Level {{current_level.list_index}}</h1></div>
+      <hr class='h-divider'></hr>
       <div class='content-item'>
         <div id='level-title'>
           <span><strong>Title:</strong> {{current_level.title}}</span>
@@ -108,6 +111,15 @@
         </div>
       </div>
       <div class='content-item'>
+        <button class='selectable' onclick="if (confirm('Are you sure you want to delete level &quot;{{current_level.title}}&quot;?')) { deleteResource('/programs/{{current_program.id}}/{{current_level.id}}'); redirect('/programs/{{current_program.id}}'); }">
+          <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
+          <span><strong>Delete Level</strong></span>
+        </button>
+      </div>
+    </span>
+    <div class="v-divider"></div>
+    <span class='content-body'>
+      <div class='content-item'>
         <div id='level-desc'>
           <span><strong>Description:</strong></span>
           <span><button class='selectable' onclick="swapHidden('level-desc', 'edit-level-desc')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
@@ -121,12 +133,6 @@
           </form>
           <div class='content-subitem'><textarea wrap='soft' class='longtext-box' form='level-description' name='level_desc'>{{current_level.description}}</textarea></div>
         </div>
-      </div>
-      <div class='content-item'>
-        <button class='selectable' onclick="if (confirm('Are you sure you want to delete level: {{current_level.title}}?')) { deleteResource('/programs/{{current_program.id}}/{{current_level.id}}'); redirect('/programs/{{current_program.id}}'); }">
-          <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
-          <span><strong>Delete Level</strong></span>
-        </button>
       </div>
     </span>
   {% endif %}

@@ -29,7 +29,7 @@
       </div>
       <div class='content-item'>
         <div id='student-birthdate'>
-          <span><strong>Birthdate:</strong> {{current_student.birthdate}}</span>
+          <span><strong>Birthdate:</strong> {{current_student.birthdate.strftime("%m/%d/%Y")}}</span>
           <span><button class='selectable' onclick="swapHidden('student-birthdate', 'edit-student-birthdate')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
         </div>
         <div id='edit-student-birthdate' hidden>
@@ -60,7 +60,7 @@
         </div>
       </div>
       <div class='content-item'>
-        <button class='selectable' onclick="if (confirm('Are you sure you want to delete {{current_student.name}}?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
+        <button class='selectable' onclick="if (confirm('Are you sure you want to delete student &quot;{{current_student.name}}&quot;?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
           <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
           <span><strong>Delete Student</strong></span>
         </button>
