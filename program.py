@@ -65,31 +65,13 @@ class Level(BaseModel):
     def update_basic(self,
             title: Optional[str] = None,
             description: Optional[str] = None,
-            list_index: Optional[int] = None,
-            list_of_levels: Optional[Dict] = None # Must provide if updating list_index
+            list_index: Optional[int] = None
         ):
         if title is not None:
             self.title = title
         if description is not None:
             self.description = description
-        if list_index is not None and list_index != self.list_index:
-            assert list_of_levels is not None
-            for level in list_of_levels.values():
-                if level.id != self.id:
-                    do_update = False
-                    if list_index <= level.list_index < self.list_index:
-                        level.list_index = level.list_index + 1
-                        do_update = True
-                    elif self.list_index < level.list_index < list_index:
-                        level.list_index = level.list_index - 1
-                        do_update = True
-                    if do_update:
-                        update_stmt = f'''
-                            UPDATE level
-                                SET list_index={level.list_index}
-                                WHERE id = {level.id};
-                        '''
-                        execute_write(self.db, update_stmt)
+        if list_index is not None:
             self.list_index = list_index
         update_stmt = f'''
             UPDATE level
@@ -245,19 +227,22 @@ class Program(BaseModel):
         if del_level is not None:
             for level in self.levels.values():
                 if level.list_index > del_level.list_index:
-                    level.update_basic(
-                        list_of_levels = self.levels,
-                        list_index = level.list_index - 1
-                    )
+                    level.update_basic(list_index = level.list_index - 1)
             del_level.delete()
 
     def get_next_level_index(self):
+        return len(self.levels)+1
+
+    def move_level_index(self, level_id: int, new_list_index: int):
         self.load_levels()
-        next_index = 0
-        for level in self.levels.values():
-            next_index = max(next_index, level.list_index)
-        next_index = next_index + 1
-        return next_index
+        move_level = self.levels[level_id]
+        if move_level is not None and new_list_index != move_level.list_index:
+            for level in self.levels.values():
+                if new_list_index <= level.list_index < move_level.list_index:
+                    level.update_basic(list_index = level.list_index + 1)
+                elif move_level.list_index < level.list_index <= new_list_index:
+                    level.update_basic(list_index = level.list_index - 1)
+            move_level.update_basic(list_index = new_list_index)
 
     def deepcopy(self):
         save_db = self.db

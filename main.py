@@ -254,6 +254,7 @@ async def programs_get_one(request: Request, program_id: int, level_id = None):
     template_args = await build_base_html_args(request)
     current_program = None
     current_level = None
+    sorted_levels = None
     if app.user is not None:
         app.user.load_programs()
         program = app.user.programs.get(program_id)
@@ -261,12 +262,16 @@ async def programs_get_one(request: Request, program_id: int, level_id = None):
             return RedirectResponse(url='/programs')
         program.load_levels()
         current_program = program.deepcopy()
+        sorted_levels = [None] * len(current_program.levels)
+        for level in current_program.levels.values():
+            sorted_levels[level.list_index-1] = level
     if current_program is not None and level_id is not None:
         level = current_program.levels.get(level_id)
         if level is not None:
             current_level = level.deepcopy()
     template_args['current_program'] = current_program
     template_args['current_level']  = current_level
+    template_args['sorted_levels']  = sorted_levels
     return resolve_auth_endpoint(request, "program.html", template_args, permission_url_path='/programs')
 
 
@@ -342,11 +347,12 @@ async def level_post_update(request: Request, program_id: int, level_id: int):
         if level is not None:
             form = await request.form()
             level.update_basic(
-                list_of_levels = program.levels,
                 title = form.get('level_title'),
-                description = form.get('level_desc'),
-                list_index = form.get('level_list_index')
+                description = form.get('level_desc')
             )
+            level_list_index = form.get('level_list_index')
+            if level_list_index is not None:
+                program.move_level_index(level_id, int(level_list_index))
     return await programs_get_one(request, program_id, level_id)
 
 
