@@ -82,3 +82,18 @@ create table program_x_levels (
 	FOREIGN KEY (level_id) REFERENCES level(id)
 );
 
+DROP TABLE IF EXISTS camp;
+create table camp (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	program_id INTEGER,
+	FOREIGN KEY (program_id) REFERENCES program(id)
+);
+
+DROP TABLE IF EXISTS camp_x_instructors;
+create table camp_x_instructors (
+	camp_id INTEGER NOT NULL,
+	user_id INTEGER NOT NULL,
+	is_primary BOOL,
+	FOREIGN KEY (camp_id) REFERENCES camp(id),
+	FOREIGN KEY (user_id) REFERENCES user(id)
+);

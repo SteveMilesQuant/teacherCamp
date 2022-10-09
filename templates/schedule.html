@@ -1,5 +1,51 @@
 {% extends 'base.html' %}
 
 {% block content %}
-	<p>You are an administrator scheduling and posting camps for the public.</p>
+	<span class='sidebar'>
+    <div class='sidebar-title'><h1><a class='selectable' href='/students'>Filter Camps</a></h1></div>
+    <hr class='h-divider'></hr>
+  </span>
+  <span class='content-body'>
+    <div class='content-item'><h1>Camps</h1></div>
+    <div class='content-item'><table>
+      <tr><th>Program</th><th>Primary Instructor</th></tr>
+      {% for camp in camps.values() %}
+        <tr onclick='redirect("/schedule/{{camp.id}}");'>
+          <td>{{camp.program.title}}</td>
+          <td>{{camp.primary_instructor.full_name}}</td>
+          <td>
+            <button class='selectable' onclick="if (confirm('Are you sure you want to delete camp &quot;{{camp.program.title}}&quot; scheduled for ...?')) { deleteResource('/schedule/{{camp.id}}'); redirect('/schedule'); }">
+              Delete
+            </button>
+          </td>
+        </tr>
+      {% endfor %}
+      <tr onclick='unhideElem("new-camp");'><td>+ Schedule New Camp</td></tr>
+    </table></div>
+    <div class='pop-up' id='new-camp' hidden>
+      <div class='pop-up-item'>
+        <h1>Schedule New Camp</h1>
+        <form action='/schedule' method='post'>
+          <label class='form-item' for='camp_program_id'>Program:</label>
+          <select class='form-item' type='select' name='camp_program_id' required>
+            {% for program in promoted_programs.values() %}
+              <option value="{{program.id}}">{{program.title}}</option>
+            {% endfor %}
+            <hr class='h-divider'></hr>
+            {% for program in user_programs.values() %}
+              <option value="{{program.id}}">{{program.title}}</option>
+            {% endfor %}
+          </select><br>
+          <label class='form-item' for='camp_instructor_id'>Primary Instructor:</label>
+          <select class='form-item' type='select' name='camp_instructor_id' required>
+            {% for instructor in instructors.values() %}
+              <option value="{{instructor.id}}" {% if instructor.id == user_id %} selected {% endif %} >{{instructor.full_name}}</option>
+            {% endfor %}
+          </select><br>
+          <input class='form-item small-button selectable' type="image" src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
+          <a class='form-iterm selectable' href='/schedule'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
+        </form>
+      </div>
+    </div>
+  <span>
 {% endblock %}

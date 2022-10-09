@@ -2,7 +2,7 @@
 
 {% block content %}
   <span class='sidebar'>
-    <div class='sidebar-title'><h1><a class='selectable' href='/students'>Students</a></h1></div>
+    <div class='sidebar-title'><h1><a class='selectable' href='/students'>My Students</a></h1></div>
     <hr class='h-divider'></hr>
     {% for id, name in student_names.items() %}
       <div class='sidebar-item menu-font'><a class='selectable' href="/students/{{id}}">{{name}}</a></div>

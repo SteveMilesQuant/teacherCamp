@@ -39,11 +39,11 @@ def load_all_roles(db: Any) -> Dict[str, Role]:
 class User(BaseModel):
     id: Optional[int] = None  # we use AUTOMATICINCREMENT on create, so this wouldn't be necessary then
     google_id: Optional[int]
-    given_name: str
-    family_name: str
-    full_name: str
-    google_email: str
-    picture: str
+    given_name: Optional[str]
+    family_name: Optional[str]
+    full_name: Optional[str]
+    google_email: Optional[str]
+    picture: Optional[str]
     db: Any
     roles: Optional[List[str]] = []
     students: Optional[Dict[int, Student]] = {}
@@ -267,3 +267,18 @@ class User(BaseModel):
                 program.delete()
 
 
+def load_all_users_by_role(db: Any, users: Dict[int,User], role: str, force_load=False):
+    if not force_load and len(users) > 0: # for now, only load once
+        return None
+    select_stmt = f'''
+        SELECT id
+            FROM user
+            WHERE id IN (SELECT id from user_x_roles WHERE role = "{role}")
+    '''
+    result = execute_read(db, select_stmt)
+    if result is not None:
+        for row in result:
+            user = User(db = db, id = row['id'])
+            user.db = None # don't allow update from this list
+            users[user.id] = user
+    

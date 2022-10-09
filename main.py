@@ -4,9 +4,10 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
-from user import User, load_all_roles
+from user import User, load_all_roles, load_all_users_by_role
 from student import Student
 from program import Program, Level, GradeLevel
+from camp import Camp, load_all_camps
 from datetime import date
 
 
@@ -19,6 +20,9 @@ app.db = None
 app.db_path = os.environ.get("DB_PATH") or os.path.join(os.path.dirname(__file__), 'app.db')
 app.db = db.get_db(app)
 app.roles = load_all_roles(app.db)
+app.instructors = {}
+app.promoted_programs = {}
+app.camps = {}
 
 templates = Jinja2Templates(directory="templates")
 api_router = APIRouter()
@@ -383,10 +387,48 @@ async def database_get(request: Request):
     return resolve_auth_endpoint(request, "database.html", template_args)
 
 
+async def schedule_get_all_camps(request: Request, template_args: dict):
+    load_all_camps(app.db, app.camps, force_load=True)
+    app.user.load_programs()
+    user_programs = {}
+    for program in app.user.programs.values():
+        user_programs[program.id] = program.deepcopy()
+    load_all_users_by_role(app.db, app.instructors, role="INSTRUCTOR", force_load=True)
+    template_args['camps'] = app.camps
+    template_args['promoted_programs'] = app.promoted_programs
+    template_args['user_programs'] = user_programs
+    template_args['instructors'] = app.instructors
+    return resolve_auth_endpoint(request, "schedule.html", template_args)
+
+
 @api_router.get("/schedule")
 async def schedule_get(request: Request):
     template_args = await build_base_html_args(request)
-    return resolve_auth_endpoint(request, "schedule.html", template_args)
+    if not check_auth(request):
+        return resolve_auth_endpoint(request, None, template_args)
+    return await schedule_get_all_camps(request, template_args)
+
+
+@api_router.post("/schedule")
+async def schedule_post_new_camp(request: Request, camp_program_id: int = Form(), camp_instructor_id: int = Form()):
+    template_args = await build_base_html_args(request)
+    if not check_auth(request):
+        return resolve_auth_endpoint(request, "schedule.html", template_args)
+    load_all_camps(app.db, app.camps)
+    new_camp = Camp(db = app.db, program_id = camp_program_id)
+    new_camp.add_instructor(camp_instructor_id)
+    new_camp.db = None
+    return await schedule_get_all_camps(request, template_args)
+
+
+@api_router.delete("/schedule/{camp_id}")
+async def camp_delete(request: Request, camp_id: int):
+    if check_auth(request, permission_url_path='/schedule'):
+        load_all_camps(app.db, app.camps)
+        camp = app.camps.pop(camp_id)
+        if camp is not None:
+            camp.db = app.db
+            camp.delete()
 
 
 @api_router.get("/instructor/{user_id}")
