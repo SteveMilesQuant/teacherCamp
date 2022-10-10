@@ -106,9 +106,9 @@ async def signin_callback_get(request: Request, code):
             given_name = user_info_json["given_name"],
             family_name = user_info_json["family_name"],
             full_name = user_info_json["name"],
-            google_email = user_info_json["email"],
             picture = user_info_json["picture"]
         )
+        app.user.add_email_address(db = app.db, email_address = user_info_json["email"])
     else:
         return "User email not available or not verified by Google.", 400
     return RedirectResponse(url='/')

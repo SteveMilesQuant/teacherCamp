@@ -41,9 +41,10 @@ class User(BaseModel):
     given_name: Optional[str]
     family_name: Optional[str]
     full_name: Optional[str]
-    google_email: Optional[str]
     picture: Optional[str]
     roles: Optional[List[str]] = []
+    email_addresses: Optional[List[str]] = []
+    primary_email_address_index: Optional[int] = 0
     students: Optional[Dict[int, Student]] = {}
     programs: Optional[Dict[int, Program]] = {}
 
@@ -72,7 +73,6 @@ class User(BaseModel):
         self.given_name = row['given_name']
         self.family_name = row['family_name']
         self.full_name = row['full_name']
-        self.google_email = row['google_email']
         self.picture = row['picture']
 
         select_stmt = f'''
@@ -84,6 +84,18 @@ class User(BaseModel):
         self.roles.clear()
         for row in result:
             self.roles.append(row['role'])
+
+        select_stmt = f'''
+            SELECT email_address, is_primary
+                FROM user_x_email_addresses
+                WHERE user_id = {self.id}
+        '''
+        result = execute_read(db, select_stmt)
+        self.email_addresses.clear()
+        for row_idx, row in enumerate(result):
+            self.email_addresses.append(row['email_address'])
+            if row['is_primary']:
+                self.primary_email_address_index = row_idx
 
         select_stmt = f'''
             SELECT student_id
@@ -110,8 +122,8 @@ class User(BaseModel):
 
     def _create(self, db: Any):
         insert_stmt = f'''
-            INSERT INTO user (google_id, given_name, family_name, full_name, google_email, picture)
-                VALUES ({self.google_id}, "{self.given_name}", "{self.family_name}", "{self.full_name}", "{self.google_email}", "{self.picture}");
+            INSERT INTO user (google_id, given_name, family_name, full_name, picture)
+                VALUES ({self.google_id}, "{self.given_name}", "{self.family_name}", "{self.full_name}", "{self.picture}");
         '''
         self.id = execute_write(db, insert_stmt)
 
@@ -145,7 +157,6 @@ class User(BaseModel):
             given_name: Optional[str] = None,
             family_name: Optional[str] = None,
             full_name: Optional[str] = None,
-            google_email: Optional[str] = None,
             picture: Optional[str] = None
         ):
         if given_name is not None:
@@ -154,14 +165,12 @@ class User(BaseModel):
             self.family_name = family_name
         if full_name is not None:
             self.full_name = full_name
-        if google_email is not None:
-            self.google_email = google_email
         if picture is not None:
             self.picture = picture
         update_stmt = f'''
             UPDATE user
                 SET given_name="{self.given_name}", family_name="{self.family_name}",
-                    full_name="{self.full_name}", google_email="{self.google_email}", picture="{self.picture}"
+                    full_name="{self.full_name}", picture="{self.picture}"
                 WHERE id = {self.id};
         '''
         execute_write(db, update_stmt)
@@ -169,6 +178,11 @@ class User(BaseModel):
     def delete(self, db: Any):
         delete_stmt = f'''
             DELETE FROM user_x_roles
+                WHERE user_id = {self.id};
+        '''
+        execute_write(db, delete_stmt)
+        delete_stmt = f'''
+            DELETE FROM user_x_email_addresses
                 WHERE user_id = {self.id};
         '''
         execute_write(db, delete_stmt)
@@ -197,6 +211,48 @@ class User(BaseModel):
         if del_role is not None:
             delete_stmt = f'''
                 DELETE FROM user_x_roles WHERE user_id={self.id} and role="{role}";
+            '''
+            execute_write(db, delete_stmt)
+
+    def make_email_address_primary(self, db: Any, email_address: str):
+        try:
+            old_primary_address = self.email_addresses[self.primary_email_address_index]
+            email_address_index = self.email_addresses.index(email_address)
+            update_stmt = f'''
+                UPDATE user
+                    SET is_primary=FALSE
+                    WHERE ser_id={self.id} and email_address="{old_primary_address}";
+            '''
+            execute_write(db, update_stmt)
+            update_stmt = f'''
+                UPDATE user
+                    SET is_primary=TRUE
+                    WHERE ser_id={self.id} and email_address="{email_address}";
+            '''
+            execute_write(db, update_stmt)
+            self.primary_email_address_index = email_address_index
+        except ValueError:
+            pass # not found - do nothing
+
+    def add_email_address(self, db: Any, email_address: str):
+        if email_address not in self.email_addresses:
+            if len(self.email_addresses) == 0:
+                is_primary = True
+                self.primary_email_address_index = 0
+            else:
+                is_primary = False
+            self.email_addresses.append(email_address)
+            insert_stmt = f'''
+                INSERT INTO user_x_email_addresses (user_id, email_address, is_primary)
+                    VALUES ({self.id}, "{email_address}", {is_primary});
+            '''
+            execute_write(db, insert_stmt)
+
+    def remove_email_address(self, db: Any, email_address: str):
+        del_email_address = self.email_addresses.pop(email_address)
+        if del_email_address is not None:
+            delete_stmt = f'''
+                DELETE FROM user_x_email_addresses WHERE user_id={self.id} and email_address="{email_address}";
             '''
             execute_write(db, delete_stmt)
 
@@ -276,4 +332,4 @@ def load_all_users_by_role(db: Any, role: str, users: Dict[int,User]):
         for row in result:
             user = User(db = db, id = row['id'])
             users[user.id] = user
-    
+

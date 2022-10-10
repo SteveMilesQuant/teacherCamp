@@ -5,7 +5,6 @@ CREATE TABLE user (
 	given_name TEXT,
 	family_name TEXT,
 	full_name TEXT,
-	google_email TEXT,
 	picture TEXT
 );
 
@@ -28,6 +27,14 @@ DROP TABLE IF EXISTS user_x_roles;
 create table user_x_roles (
 	user_id INTEGER NOT NULL,
 	role TEXT,
+	FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+DROP TABLE IF EXISTS user_x_email_addresses;
+create table user_x_email_addresses (
+	user_id INTEGER NOT NULL,
+	email_address TEXT,
+	is_primary BOOL,
 	FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
