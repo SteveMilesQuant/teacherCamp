@@ -36,8 +36,7 @@ create table student (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT,
 	birthdate DATE,
-	grade_level INT,
-	school text
+	grade_level INT
 );
 
 DROP TABLE IF EXISTS user_x_students;
