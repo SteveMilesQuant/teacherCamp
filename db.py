@@ -1,6 +1,13 @@
 import sqlite3, os
 from fastapi import FastAPI
 from urllib.request import pathname2url
+from pydantic import BaseModel
+
+
+class ColumnMeta(BaseModel):
+    name: str
+    display_html: bool
+    display_label: str
 
 
 def get_db(app: FastAPI):

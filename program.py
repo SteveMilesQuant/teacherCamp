@@ -217,8 +217,8 @@ class Program(BaseModel):
         if del_level is not None:
             for level in self.levels.values():
                 if level.list_index > del_level.list_index:
-                    level.update_basic(list_index = level.list_index - 1)
-            del_level.delete()
+                    level.update_basic(db = db, list_index = level.list_index - 1)
+            del_level.delete(db = db)
 
     def get_next_level_index(self):
         return len(self.levels)+1
@@ -232,7 +232,7 @@ class Program(BaseModel):
                     level.update_basic(db = db, list_index = level.list_index + 1)
                 elif move_level.list_index < level.list_index <= new_list_index:
                     level.update_basic(db = db, list_index = level.list_index - 1)
-            move_level.update_basic(list_index = new_list_index)
+            move_level.update_basic(db = db, list_index = new_list_index)
 
 
 

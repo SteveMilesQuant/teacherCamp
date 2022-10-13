@@ -1,8 +1,9 @@
+import pandas
 from db import execute_read, execute_write
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 from student import Student
-from program import Program
+from program import Program, GradeLevel
 
 
 class Role(BaseModel):
@@ -46,7 +47,7 @@ class User(BaseModel):
     email_addresses: Optional[List[str]] = []
     primary_email_address_index: Optional[int] = 0
     students: Optional[Dict[int, Student]] = {}
-    programs: Optional[Dict[int, Program]] = {}
+    program_ids: Optional[List[int]] = []
 
     def _load(self, db: Any) -> bool:
         if self.id is None:
@@ -114,10 +115,10 @@ class User(BaseModel):
                 WHERE user_id = {self.id}
         '''
         result = execute_read(db, select_stmt)
-        self.programs.clear()
+        self.program_ids.clear()
         if result is not None:
             for row in result:
-                self.programs[row['program_id']] = None
+                self.program_ids.append(row['program_id'])
         return True
 
     def _create(self, db: Any):
@@ -289,36 +290,48 @@ class User(BaseModel):
                 student.delete(db = db)
 
     def load_programs(self, db: Any):
-        for program_id, program in self.programs.items():
-            self.programs[program_id] = Program(id=program_id, db=db)
+        select_stmt = f'''
+            SELECT t2.*
+                FROM user_x_programs as t1, program as t2
+                WHERE t1.user_id = {self.id} and t1.program_id = t2.id
+        '''
+        dataframe = pandas.read_sql_query(select_stmt, db)
+        dataframe['grade_range'] = dataframe['from_grade'].copy()
+        for row_idx, row in dataframe.iterrows():
+            grade_range = f'{GradeLevel(row["grade_range"]).html_display()} to {GradeLevel(row["to_grade"]).html_display()}'
+            dataframe.at[row_idx,'grade_range'] = grade_range
+        return dataframe
 
     def add_program(self, db: Any, program_id: int):
-        self.programs[program_id] = None
-        insert_stmt = f'''
-            INSERT INTO user_x_programs (user_id, program_id)
-                VALUES ({self.id}, "{program_id}");
-        '''
-        execute_write(db, insert_stmt)
+        if program_id not in self.program_ids:
+            self.program_ids.append(program_id)
+            insert_stmt = f'''
+                INSERT INTO user_x_programs (user_id, program_id)
+                    VALUES ({self.id}, "{program_id}");
+            '''
+            execute_write(db, insert_stmt)
 
     def remove_program(self, db: Any, program_id: int):
-        self.load_programs(db = db)
-        program = self.programs.pop(program_id)
-        if program is not None:
-            delete_stmt = f'''
-                DELETE FROM user_x_programs
-                    WHERE user_id = {self.id} and program_id = {program_id};
-            '''
-            execute_write(db, delete_stmt)
+        try:
+            self.program_ids.remove(program_id)
+        except ValueError:
+            return # not found is okay, but we should leave
 
-            # If no other instructors have this program, fully delete it
-            select_stmt = f'''
-                SELECT program_id
-                    FROM user_x_programs
-                    WHERE program_id = {program_id}
-            '''
-            result = execute_read(db, select_stmt)
-            if result is None:
-                program.delete(db = db)
+        delete_stmt = f'''
+            DELETE FROM user_x_programs
+                WHERE user_id = {self.id} and program_id = {program_id};
+        '''
+        execute_write(db, delete_stmt)
+        # If no other instructors have this program, fully delete it
+        select_stmt = f'''
+            SELECT program_id
+                FROM user_x_programs
+                WHERE program_id = {program_id}
+        '''
+        result = execute_read(db, select_stmt)
+        if result is None:
+            program = Program(db = db, id = program_id)
+            program.delete(db = db)
 
 
 def load_all_users_by_role(db: Any, role: str, users: Dict[int,User]):

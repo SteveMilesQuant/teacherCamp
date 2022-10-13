@@ -237,11 +237,32 @@ async def programs_teach_get(request: Request):
 
 async def programs_get(request: Request):
     template_args = await build_base_html_args(request)
-    programs = {}
+    dataframe = None
+    dataframe_columns = None
     if app.user is not None:
-        app.user.load_programs(db = app.db)
-        programs = app.user.programs
-    template_args['programs'] = programs
+        dataframe = app.user.load_programs(db = app.db)
+        dataframe_columns = []
+        for column in dataframe.columns:
+            match column:
+                case 'id':
+                    display_html = False
+                case 'from_grade':
+                    display_html = False
+                case 'to_grade':
+                    display_html = False
+                case 'description':
+                    display_html = False
+                case _:
+                    display_html = True
+            display_label = column.replace('_', ' ').title()
+            col_meta = db.ColumnMeta(
+                name = column,
+                display_html = display_html,
+                display_label = display_label
+            )
+            dataframe_columns.append(col_meta)
+    template_args['dataframe'] = dataframe
+    template_args['dataframe_columns'] = dataframe_columns
     return templates.TemplateResponse("programs.html", template_args)
 
 
@@ -259,10 +280,9 @@ async def programs_get_one(request: Request, program_id: int, level_id = None):
     current_level = None
     sorted_levels = None
     if app.user is not None:
-        app.user.load_programs(db = app.db)
-        current_program = app.user.programs.get(program_id)
-        if current_program is None:
+        if program_id not in app.user.program_ids:
             return RedirectResponse(url='/programs')
+        current_program = Program(db = app.db, id = program_id)
         current_program.load_levels(db = app.db)
         sorted_levels = [None] * len(current_program.levels)
         for level in current_program.levels.values():
@@ -312,10 +332,9 @@ async def program_post_update(request: Request, program_id: int):
     auth_response = check_auth(permission_url_path='/programs')
     if auth_response is not None:
         return auth_response
-    app.user.load_programs(db = app.db)
-    program = app.user.programs.get(program_id)
     level_id = None
-    if program is not None:
+    if program_id in app.user.program_ids:
+        program = Program(db = app.db, id = program_id)
         form = await request.form()
         level_title = form.get('level_title')
         if level_title is None:
@@ -336,7 +355,7 @@ async def program_post_update(request: Request, program_id: int):
                 description = form.get('level_desc'),
                 list_index = program.get_next_level_index()
             )
-            program.add_level(new_level.id)
+            program.add_level(db = app.db, level_id = new_level.id)
             level_id = new_level.id
     return await programs_get_one(request, program_id, level_id=level_id)
 
@@ -346,9 +365,8 @@ async def level_post_update(request: Request, program_id: int, level_id: int):
     auth_response = check_auth(permission_url_path='/programs')
     if auth_response is not None:
         return auth_response
-    app.user.load_programs(db = app.db)
-    program = app.user.programs.get(program_id)
-    if program is not None:
+    if program_id in app.user.program_ids:
+        program = Program(db = app.db, id = program_id)
         program.load_levels(db = app.db)
         level = program.levels.get(level_id)
         if level is not None:
@@ -373,9 +391,8 @@ async def program_delete(request: Request, program_id: int):
 @api_router.delete("/programs/{program_id}/{level_id}")
 async def level_delete(request: Request, program_id: int, level_id: int):
     if check_auth(permission_url_path='/programs') is None:
-        app.user.load_programs(db = app.db)
-        program = app.user.programs.get(program_id)
-        if program is not None:
+        if program_id in app.user.program_ids:
+            program = Program(db = app.db, id = program_id)
             program.remove_level(db = app.db, level_id = level_id)
 
 
@@ -399,8 +416,7 @@ async def database_get(request: Request):
 
 async def schedule_get_all_camps(request: Request, template_args: dict):
     load_all_camps(db = app.db, camps = app.camps)
-    app.user.load_programs(db = app.db)
-    user_programs = app.user.programs
+    user_programs = app.user.load_programs(db = app.db)
     load_all_users_by_role(db = app.db, role="INSTRUCTOR", users = app.instructors)
     template_args['camps'] = app.camps
     template_args['promoted_programs'] = app.promoted_programs

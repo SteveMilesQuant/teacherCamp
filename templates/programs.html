@@ -8,13 +8,20 @@
   <div class='content-body'>
     <div class='content-item'><h1>Programs</h1></div>
     <div class='content-item'><table>
-      <tr><th>Title</th><th>Grade Levels</th><th>Tags</th><th>Materials Link</th></tr>
-      {% for program in programs.values() %}
-        <tr onclick='redirect("/programs/{{program.id}}");'>
-          <td>{{program.title}}</td>
-          <td>{{program.grade_range[0].html_display()}} to {{program.grade_range[1].html_display()}}</td>
-          <td>{{program.tags}}</td>
-          <td></td>
+      <tr>
+        {% for column in dataframe_columns %}
+          {% if column.display_html %}
+            <th>{{column.display_label}}</th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% for program in dataframe.to_dict(orient='records') %}
+        <tr class='selectable' onclick='redirect("/programs/{{program.id}}");'>
+          {% for column in dataframe_columns %}
+            {% if column.display_html %}
+              <td>{{program[column.name]}}</td>
+            {% endif %}
+          {% endfor %}
           <td>
             <button class='selectable' onclick="if (confirm('Are you sure you want to delete program &quot;{{program.title}}&quot;?')) { deleteResource('/programs/{{program.id}}'); redirect('/programs'); }">
               Delete
