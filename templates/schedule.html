@@ -4,23 +4,44 @@
 	<span class='sidebar'>
     <div class='sidebar-title'><h1>Filter Camps</h1></div>
     <hr class='h-divider'></hr>
+    {% for filter in filtertable.filters %}
+      <div class='sidebar-item menu-font'>{{filtertable.current_view.columns[filtertable.current_view.columns.get_loc(filter.display_column)].display_name}}
+        {% if filter.filter_type == 'Checkboxes' %}
+          {% for filter_value in filtertable.current_view[filter.source_column].unique() %}
+            <div class='sidebar-subitem'>{{filter_value}}</div>
+          {% endfor %}
+        {% elif filter.filter_type == 'DoubleRange' %}
+          <div class='sidebar-subitem'>Low: {{filtertable.current_view[filter.source_columns[0]].min()}}</div>
+          <div class='sidebar-subitem'>High: {{filtertable.current_view[filter.source_columns[1]].max()}}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
   </span>
   <span class='content-body'>
     <div class='content-item'><h1>Camps</h1></div>
     <div class='content-item'><table>
-      <tr><th>Program</th><th>Primary Instructor</th></tr>
-      {% for camp in camps.values() %}
-        <tr onclick='redirect("/schedule/{{camp.id}}");'>
-          <td>{{camp.program.title}}</td>
-          <td>{{camp.primary_instructor.full_name}}</td>
+      <tr>
+        {% for column in filtertable.current_view.columns %}
+          {% if column.display %}
+            <th>{{column.display_name}}</th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% for camp in filtertable.current_view.to_dict(orient='records') %}
+        <tr class='selectable' onclick='redirect("/camps/{{camp.id}}");'>
+          {% for column in filtertable.current_view.columns %}
+            {% if column.display %}
+              <td>{{camp[column]}}</td>
+            {% endif %}
+          {% endfor %}
           <td>
-            <button class='selectable' onclick="if (confirm('Are you sure you want to delete camp &quot;{{camp.program.title}}&quot; scheduled for ...?')) { deleteResource('/schedule/{{camp.id}}'); redirect('/schedule'); }">
+            <button class='selectable' onclick="if (confirm('Are you sure you want to delete camp &quot;{{camp.title}}&quot;?')) { deleteResource('/schedule/{{camp.id}}'); redirect('/schedule'); }">
               Delete
             </button>
           </td>
         </tr>
       {% endfor %}
-      <tr onclick='unhideElem("new-camp");'><td>+ Schedule New Camp</td></tr>
+      <tr class='selectable' onclick='unhideElem("new-camp");'><td>+ Add Camp</td></tr>
     </table></div>
     <div class='pop-up' id='new-camp' hidden>
       <div class='pop-up-item'>
@@ -32,8 +53,8 @@
               <option value="{{program.id}}">{{program.title}}</option>
             {% endfor %}
             <hr class='h-divider'></hr>
-            {% for program in user_programs.values() %}
-              <option value="{{program.id}}">{{program.title}}</option>
+            {% for program_id, program_title in user_program_titles.items() %}
+              <option value="{{program_id}}">{{program_title}}</option>
             {% endfor %}
           </select><br>
           <label class='form-item' for='camp_instructor_id'>Primary Instructor:</label>

@@ -290,6 +290,19 @@ class User(BaseModel):
             if result is None:
                 student.delete(db = db)
 
+    def load_program_titles(self, db: Any) -> Dict:
+        select_stmt = f'''
+            SELECT t2.id, t2.title
+                FROM user_x_programs as t1, program as t2
+                WHERE t1.user_id = {self.id} and t1.program_id = t2.id
+        '''
+        result = execute_read(db, select_stmt)
+        program_titles = {}
+        if result is not None:
+            for row in result:
+                program_titles[row['id']] = row['title']
+        return program_titles
+
     def load_programs_table(self, db: Any) -> FilterTable:
         select_stmt = f'''
             SELECT t2.*

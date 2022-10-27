@@ -1,9 +1,10 @@
-import copy
+import copy, pandas
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 from db import execute_read, execute_write
 from program import Program
 from user import User
+from filtertable import FilterTable, Checkboxes
 
 
 class Camp(BaseModel):
@@ -116,16 +117,18 @@ class Camp(BaseModel):
         self.program = Program(db = db, id = self.program_id)
 
 
-def load_all_camps(db: Any, camps: Dict[int,Camp]):
+def load_camps_table(db: Any) -> FilterTable:
     select_stmt = f'''
-        SELECT id
-            FROM camp
+        SELECT t1.*, t2.id as program_id, t2.title, t2.tags, t4.id as primary_instructor_id, t4.full_name as primary_instructor
+            FROM camp as t1, program as t2, camp_x_instructors as t3, user as t4
+            WHERE t1.program_id = t2.id and t1.id = t3.camp_id and t3.is_primary and t3.user_id = t4.id
     '''
-    result = execute_read(db, select_stmt)
-    if result is not None:
-        for row in result:
-            camp = Camp(db = db, id = row['id'])
-            camp.load_program(db = db)
-            camps[camp.id] = camp
-
+    dataframe = pandas.read_sql_query(select_stmt, db)
+    filter_table = FilterTable(base_dataframe=dataframe)
+    dataframe = filter_table.base_dataframe
+    dataframe.columns[dataframe.columns.get_loc('title')].display = True
+    dataframe.columns[dataframe.columns.get_loc('primary_instructor')].display = True
+    filter_table.filters.append(Checkboxes(display_column='tags', source_column='tags'))
+    filter_table.filters.append(Checkboxes(display_column='primary_instructor', source_column='primary_instructor'))
+    return filter_table
 

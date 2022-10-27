@@ -7,7 +7,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from user import User, load_all_roles, load_all_users_by_role
 from student import Student
 from program import Program, Level, GradeLevel
-from camp import Camp, load_all_camps
+from camp import Camp, load_camps_table
 from datetime import date
 
 
@@ -393,12 +393,11 @@ async def database_get(request: Request):
 
 
 async def schedule_get_all_camps(request: Request, template_args: dict):
-    load_all_camps(db = app.db, camps = app.camps)
-    user_programs = app.user.load_programs(db = app.db)
+    user_program_titles = app.user.load_program_titles(db = app.db)
     load_all_users_by_role(db = app.db, role="INSTRUCTOR", users = app.instructors)
-    template_args['camps'] = app.camps
+    template_args['filtertable'] = load_camps_table(db = app.db)
     template_args['promoted_programs'] = app.promoted_programs
-    template_args['user_programs'] = user_programs
+    template_args['user_program_titles'] = user_program_titles
     template_args['instructors'] = app.instructors
     return templates.TemplateResponse("schedule.html", template_args)
 
@@ -418,7 +417,6 @@ async def schedule_post_new_camp(request: Request, camp_program_id: int = Form()
     if auth_response is not None:
         return auth_response
     template_args = await build_base_html_args(request)
-    load_all_camps(db = app.db, camps = app.camps)
     new_camp = Camp(db = app.db, program_id = camp_program_id)
     new_camp.add_instructor(db = app.db, user_id = camp_instructor_id)
     return await schedule_get_all_camps(request, template_args)
