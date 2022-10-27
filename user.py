@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 from student import Student
 from program import Program, GradeLevel
+from filtertable import FilterTable, Checkboxes, DoubleRange
 
 
 class Role(BaseModel):
@@ -289,7 +290,7 @@ class User(BaseModel):
             if result is None:
                 student.delete(db = db)
 
-    def load_programs(self, db: Any):
+    def load_programs_table(self, db: Any) -> FilterTable:
         select_stmt = f'''
             SELECT t2.*
                 FROM user_x_programs as t1, program as t2
@@ -300,7 +301,14 @@ class User(BaseModel):
         for row_idx, row in dataframe.iterrows():
             grade_range = f'{GradeLevel(row["grade_range"]).html_display()} to {GradeLevel(row["to_grade"]).html_display()}'
             dataframe.at[row_idx,'grade_range'] = grade_range
-        return dataframe
+        filter_table = FilterTable(base_dataframe=dataframe)
+        dataframe = filter_table.base_dataframe
+        dataframe.columns[dataframe.columns.get_loc('title')].display = True
+        dataframe.columns[dataframe.columns.get_loc('tags')].display = True
+        dataframe.columns[dataframe.columns.get_loc('grade_range')].display = True
+        filter_table.filters.append(Checkboxes(display_column='tags', source_column='tags'))
+        filter_table.filters.append(DoubleRange(display_column='grade_range', source_columns=('from_grade','to_grade')))
+        return filter_table
 
     def add_program(self, db: Any, program_id: int):
         if program_id not in self.program_ids:

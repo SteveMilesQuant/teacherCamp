@@ -8,6 +8,7 @@ class ColumnMeta(BaseModel):
     name: str
     display_html: bool
     display_label: str
+    can_filter: bool
 
 
 def get_db(app: FastAPI):

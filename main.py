@@ -237,32 +237,10 @@ async def programs_teach_get(request: Request):
 
 async def programs_get(request: Request):
     template_args = await build_base_html_args(request)
-    dataframe = None
-    dataframe_columns = None
+    filtertable = None
     if app.user is not None:
-        dataframe = app.user.load_programs(db = app.db)
-        dataframe_columns = []
-        for column in dataframe.columns:
-            match column:
-                case 'id':
-                    display_html = False
-                case 'from_grade':
-                    display_html = False
-                case 'to_grade':
-                    display_html = False
-                case 'description':
-                    display_html = False
-                case _:
-                    display_html = True
-            display_label = column.replace('_', ' ').title()
-            col_meta = db.ColumnMeta(
-                name = column,
-                display_html = display_html,
-                display_label = display_label
-            )
-            dataframe_columns.append(col_meta)
-    template_args['dataframe'] = dataframe
-    template_args['dataframe_columns'] = dataframe_columns
+        filtertable = app.user.load_programs_table(db = app.db)
+    template_args['filtertable'] = filtertable
     return templates.TemplateResponse("programs.html", template_args)
 
 

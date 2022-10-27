@@ -4,22 +4,34 @@
   <span class='sidebar'>
     <div class='sidebar-title'><h1>Filter Programs</h1></div>
     <hr class='h-divider'></hr>
+    {% for filter in filtertable.filters %}
+      <div class='sidebar-item menu-font'>{{filtertable.current_view.columns[filtertable.current_view.columns.get_loc(filter.display_column)].display_name}}
+        {% if filter.filter_type == 'Checkboxes' %}
+          {% for filter_value in filtertable.current_view[filter.source_column].unique() %}
+            <div class='sidebar-subitem'>{{filter_value}}</div>
+          {% endfor %}
+        {% elif filter.filter_type == 'DoubleRange' %}
+          <div class='sidebar-subitem'>Low: {{filtertable.current_view[filter.source_columns[0]].min()}}</div>
+          <div class='sidebar-subitem'>High: {{filtertable.current_view[filter.source_columns[1]].max()}}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
   </span>
   <div class='content-body'>
     <div class='content-item'><h1>Programs</h1></div>
     <div class='content-item'><table>
       <tr>
-        {% for column in dataframe_columns %}
-          {% if column.display_html %}
-            <th>{{column.display_label}}</th>
+        {% for column in filtertable.current_view.columns %}
+          {% if column.display %}
+            <th>{{column.display_name}}</th>
           {% endif %}
         {% endfor %}
       </tr>
-      {% for program in dataframe.to_dict(orient='records') %}
+      {% for program in filtertable.current_view.to_dict(orient='records') %}
         <tr class='selectable' onclick='redirect("/programs/{{program.id}}");'>
-          {% for column in dataframe_columns %}
-            {% if column.display_html %}
-              <td>{{program[column.name]}}</td>
+          {% for column in filtertable.current_view.columns %}
+            {% if column.display %}
+              <td>{{program[column]}}</td>
             {% endif %}
           {% endfor %}
           <td>
@@ -29,7 +41,7 @@
           </td>
         </tr>
       {% endfor %}
-      <tr onclick='unhideElem("new-program");'><td>+ Add Program</td></tr>
+      <tr class='selectable' onclick='unhideElem("new-program");'><td>+ Add Program</td></tr>
     </table></div>
     <div class='pop-up' id='new-program' hidden>
       <div class='pop-up-item'>
