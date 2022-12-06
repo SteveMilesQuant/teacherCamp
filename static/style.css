@@ -4,7 +4,7 @@ body { overflow: hidden; }
 h1 { font-size: 20px; }
 h2 { font-size: 18px; }
 p, textarea, input[type=text], input[type=date], option { font-size: 16px }
-button { border: none; font-size: 16px; }
+button { border: none; font-size: 16px; background-color: white; }
 ::-webkit-scrollbar {
   display: none;
 }

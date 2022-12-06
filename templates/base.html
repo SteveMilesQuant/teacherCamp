@@ -73,10 +73,23 @@
       mainElem.style.marginLeft = width;
     }
   }
+
+  function setHidden(elemId, hidden) {
+    elem = document.getElementById(elemId);
+    elem.hidden = hidden;
+  }
   
-  function unhideElem(elemIdToUnhide) {
-    unhideElem = document.getElementById(elemIdToUnhide);
-    unhideElem.hidden = false;
+  function setContentEditable(elemId, contentEditable) {
+    elem = document.getElementById(elemId);
+    elem.contentEditable = contentEditable;
+    if (contentEditable) {
+      elem.setAttribute('innerHTML', elem.innerHTML);
+    }
+  }
+  
+  function resetValue(elemId) {
+    elem = document.getElementById(elemId);
+    elem.innerHTML = elem.getAttribute('innerHTML');
   }
 
   function swapHidden(hideElemId, unHideElemId) {
@@ -86,6 +99,16 @@
     elem.hidden = false;
   }
   
+  function putUpdate(url, data) {
+    fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+  }
+
   function deleteResource(url) {
     fetch(url, {
       method: 'DELETE',
@@ -94,7 +117,7 @@
       }
     });
   }
-  
+
   function redirect(url) {
     window.location.href = url;
   }
