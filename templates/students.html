@@ -12,13 +12,13 @@
   <span class='content-body' id='content-body-1' hidden>
     <div class='content-item'><h1>
       <span>Student Profile</span>
-      <span><button class='selectable' id='student-edit' onclick='edit("student-name"); edit("student-birthdate"); edit("student-grade"); hide("student-edit"); unhide("student-submit"); unhide("student-cancel"); hide("student-delete");'>
+      <span><button class='selectable' id='student-edit' onclick='edit(["student-name", "student-birthdate", "student-grade"]); hide(["student-edit", "student-delete"]); unhide(["student-submit", "student-cancel"]);'>
         <img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/>
       </button></span>
-      <span><button class='selectable' id='student-submit' onclick='putStudent(student_id); unhide("student-edit"); hide("student-submit"); hide("student-cancel"); unhide("student-delete");' hidden>
+      <span><button class='selectable' id='student-submit' onclick='putStudent(student_id); unhide(["student-edit", "student-delete"]); hide(["student-submit", "student-cancel"]);' hidden>
         <img class='small-button' src="{{ url_for('images', path='/confirm.png') }}" alt='Submit'/>
       </button></span>
-      <span><button class='selectable' id='student-cancel' onclick='getStudent(student_id); unhide("student-edit"); hide("student-submit"); hide("student-cancel"); unhide("student-delete");' hidden>
+      <span><button class='selectable' id='student-cancel' onclick='getStudent(student_id); unhide(["student-edit", "student-delete"]); hide(["student-submit", "student-cancel"]);' hidden>
         <img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/>
       </button></span>
     </h1></div>
@@ -70,10 +70,10 @@
         {% endfor %}
       </select></div>
       <div class='pop-up-subitem'>
-        <span><button class='selectable' onclick='postStudent(); hide("new-student"); resetNewStudent();'>
+        <span><button class='selectable' onclick='postStudent(); resetNewStudent();'>
           <img class='small-button' src="{{ url_for('images', path='/confirm.png') }}" alt='Submit'/>
         </button></span>
-        <span><button class='selectable' onclick='hide("new-student"); resetNewStudent();'>
+        <span><button class='selectable' onclick='resetNewStudent();'>
           <img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/>
         </button></span>
       </div>
@@ -93,9 +93,7 @@
   student_id = null;
 
   function displayStudent(student) {
-    unhide("content-body-1");
-    unhide("content-body-2");
-    unhide("content-body-3");
+    unhide(["content-body-1", "content-body-2", "content-body-3"]);
 
     studentName = document.getElementById('student-name');
     studentName.innerHTML = student.name;
@@ -114,6 +112,7 @@
   }
 
   function resetNewStudent() {
+    hide("new-student");
     document.getElementById('new-student-name').innerHTML = "";
     document.getElementById('new-student-birthdate').value = "";
     document.getElementById('new-student-grade').selectedIndex = 6;
@@ -138,7 +137,7 @@
         newDiv.classList.add('menu-font');
         newDiv.classList.add('selectable');
         newDiv.id = 'student-sidebar-' + returnedStudent.id;
-        newDiv.onclick = 'getStudent(' + returnedStudent.id + '); unhide("content-body-1"); unhide("content-body-2"); unhide("content-body-3");';
+        newDiv.onclick = 'getStudent(' + returnedStudent.id + ');';
         newDiv.innerHTML = returnedStudent.name;
         sidebar.insertBefore(newDiv, sidebar.lastElementChild);
 

@@ -99,7 +99,7 @@
       const resData = await response.json();
       return resData;
     }
-    
+
     async post(url, data) {
       const bodyJson = JSON.stringify(data);
       const response = await fetch(url, {
@@ -128,26 +128,41 @@
     }
   }
 
-  function hide(elemId) {
-    elem = document.getElementById(elemId);
-    elem.hidden = true;
+  function hide(elemIds) {
+    if (elemIds.constructor != Array) {
+      elemIds = [elemIds];
+    }
+    for (const elemId of elemIds) {
+      elem = document.getElementById(elemId);
+      elem.hidden = true;
+    }
   }
 
-  function unhide(elemId) {
-    elem = document.getElementById(elemId);
-    elem.hidden = false;
+  function unhide(elemIds) {
+    if (elemIds.constructor != Array) {
+      elemIds = [elemIds];
+    }
+    for (const elemId of elemIds) {
+      elem = document.getElementById(elemId);
+      elem.hidden = false;
+    }
   }
 
-  function edit(elemId) {
-    elem = document.getElementById(elemId);
-    if (elem.tagName == 'INPUT') {
-      elem.readOnly = false;
+  function edit(elemIds) {
+    if (elemIds.constructor != Array) {
+      elemIds = [elemIds];
     }
-    else if (elem.tagName == 'SELECT') {
-      elem.disabled = false;
-    }
-    else {
-      elem.contentEditable = true;
+    for (const elemId of elemIds) {
+      elem = document.getElementById(elemId);
+      if (elem.tagName == 'INPUT') {
+        elem.readOnly = false;
+      }
+      else if (elem.tagName == 'SELECT') {
+        elem.disabled = false;
+      }
+      else {
+        elem.contentEditable = true;
+      }
     }
   }
 
