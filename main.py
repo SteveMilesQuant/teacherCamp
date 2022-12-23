@@ -1,5 +1,5 @@
 import os, aiohttp, json, db
-from fastapi import FastAPI, Request, APIRouter, Form
+from fastapi import FastAPI, Request, APIRouter, Response, status, Form
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -41,13 +41,12 @@ async def get_google_provider_cfg() -> dict:
     return ret_json
 
 
-async def build_base_html_args(request: Request) -> dict:
+def build_base_html_args(request: Request) -> dict:
     template_args = {"request": request}
     if app.user is None:
         template_args['user_id'] = None
         template_args['user_name'] = None
         template_args['roles'] = None
-        template_args['grade_levels'] = None
     else:
         template_args['user_id'] = app.user.id
         template_args['user_name'] = app.user.full_name
@@ -55,13 +54,12 @@ async def build_base_html_args(request: Request) -> dict:
         for role_name in app.user.roles:
             current_roles.append(app.roles[role_name])
         template_args['roles'] = current_roles
-        template_args['grade_levels'] = GradeLevel
     return template_args
 
 
 @api_router.get("/")
 async def homepage_get(request: Request):
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("index.html", template_args)
 
 
@@ -127,36 +125,37 @@ async def shutdown() -> None:
         os.remove(app.db_path)
 
 
-def check_auth(request: Request, permission_url_path = None):
+def check_basic_auth(permission_url_path, response: Response):
     if not app.user:
-        return templates.TemplateResponse('login.html', {"request": request})
+        return RedirectResponse(url='/')
+
     for role_name in app.user.roles:
         role = app.roles[role_name]
         if permission_url_path in role.permissible_endpoints:
             return None
-    return f"User does not have permission for {request.url.path}", 400
+
+    response.status_code = status.HTTP_403_FORBIDDEN
+    return f"User does not have permission for {permission_url_path}"
 
 
 @api_router.get("/profile")
 async def profile_get(request: Request):
-    if not app.user:
-        return templates.TemplateResponse('login.html', {"request": request})
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("profile.html", template_args)
 
 
 @api_router.get("/camps")
 async def camps_get(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/camps')
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("camps.html", template_args)
 
 
 @api_router.get("/students")
-async def get_students_page(request: Request):
-    template_args = await build_base_html_args(request)
+async def get_students_page(request: Request, response: Response):
+    auth_check = check_basic_auth('/students', response)
+    if auth_check is not None:
+        return auth_check
+    template_args = build_base_html_args(request)
     student_names = {}
     if app.user is not None:
         app.user.load_students(db = app.db)
@@ -166,18 +165,32 @@ async def get_students_page(request: Request):
     return templates.TemplateResponse("students.html", template_args)
 
 @api_router.get("/students/{student_id}", response_model=StudentData)
-async def get_one_student(student_id: int):
-    return app.user.students.get(student_id)
+async def get_one_student(student_id: int, response: Response):
+    if check_basic_auth('/students', response) is not None:
+        return StudentData()
+    student = app.user.students.get(student_id)
+    if student is None:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return StudentData()
+    return student
 
 @api_router.put("/students/{student_id}", response_model = StudentData)
-async def put_update_student(student_id: int, updated_student: StudentData):
-    student = app.user.students.get(student_id).copy(update=updated_student.dict())
+async def put_update_student(student_id: int, updated_student: StudentData, response: Response):
+    if check_basic_auth('/students', response) is not None:
+        return StudentData()
+    student = app.user.students.get(student_id)
+    if student is None:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return StudentData()
+    student = student.copy(update=updated_student.dict())
     await student.update_basic(app.db)
     app.user.students[student_id] = student
     return student
 
 @api_router.post("/students", response_model = StudentData)
-async def post_new_student(new_student_data: StudentData):
+async def post_new_student(new_student_data: StudentData, response: Response):
+    if check_basic_auth('/students', response) is not None:
+        return StudentData()
     # TODO: there's got to be a slicker way to do this
     new_student = Student(
         db = app.db,
@@ -190,21 +203,20 @@ async def post_new_student(new_student_data: StudentData):
     return new_student
 
 @api_router.delete("/students/{student_id}")
-async def delete_student(student_id: int):
+async def delete_student(student_id: int, response: Response):
+    if check_basic_auth('/students', response) is not None:
+        return None
     app.user.remove_student(db = app.db, student_id = student_id)
 
 
 @api_router.get("/teach")
 async def programs_teach_get(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/teach')
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("teach.html", template_args)
 
 
 async def programs_get(request: Request):
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     filtertable = None
     if app.user is not None:
         filtertable = app.user.load_programs_table(db = app.db)
@@ -214,14 +226,11 @@ async def programs_get(request: Request):
 
 @api_router.get("/programs")
 async def programs_get_all(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/programs')
-    if auth_response is not None:
-        return auth_response
     return await programs_get(request)
 
 
 async def programs_get_one(request: Request, program_id: int, level_id = None):
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     current_program = None
     current_level = None
     sorted_levels = None
@@ -243,25 +252,16 @@ async def programs_get_one(request: Request, program_id: int, level_id = None):
 
 @api_router.get("/programs/{program_id}")
 async def programs_get_one_nolevel(request: Request, program_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/programs')
-    if auth_response is not None:
-        return auth_response
     return await programs_get_one(request, program_id, level_id=None)
 
 
 @api_router.get("/programs/{program_id}/{level_id}")
 async def programs_get_one_withlevel(request: Request, program_id: int, level_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/programs')
-    if auth_response is not None:
-        return auth_response
     return await programs_get_one(request, program_id, level_id)
 
 
 @api_router.post("/programs")
 async def programs_post_new(request: Request, title: str = Form(), from_grade: int = Form(), to_grade: int = Form()):
-    auth_response = check_auth(request=request, permission_url_path='/programs')
-    if auth_response is not None:
-        return auth_response
     form = await request.form()
     new_program = Program(
         db = app.db,
@@ -275,9 +275,6 @@ async def programs_post_new(request: Request, title: str = Form(), from_grade: i
 
 @api_router.post("/programs/{program_id}")
 async def program_post_update(request: Request, program_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/programs')
-    if auth_response is not None:
-        return auth_response
     level_id = None
     if program_id in app.user.program_ids:
         program = Program(db = app.db, id = program_id)
@@ -308,9 +305,6 @@ async def program_post_update(request: Request, program_id: int):
 
 @api_router.post("/programs/{program_id}/{level_id}")
 async def level_post_update(request: Request, program_id: int, level_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/programs')
-    if auth_response is not None:
-        return auth_response
     if program_id in app.user.program_ids:
         program = Program(db = app.db, id = program_id)
         program.load_levels(db = app.db)
@@ -330,33 +324,25 @@ async def level_post_update(request: Request, program_id: int, level_id: int):
 
 @api_router.delete("/programs/{program_id}")
 async def program_delete(request: Request, program_id: int):
-    if check_auth(request=request, permission_url_path='/programs') is None:
-        app.user.remove_program(db = app.db, program_id = program_id)
+    app.user.remove_program(db = app.db, program_id = program_id)
 
 
 @api_router.delete("/programs/{program_id}/{level_id}")
 async def level_delete(request: Request, program_id: int, level_id: int):
-    if check_auth(request=request, permission_url_path='/programs') is None:
-        if program_id in app.user.program_ids:
-            program = Program(db = app.db, id = program_id)
-            program.remove_level(db = app.db, level_id = level_id)
+    if program_id in app.user.program_ids:
+        program = Program(db = app.db, id = program_id)
+        program.remove_level(db = app.db, level_id = level_id)
 
 
 @api_router.get("/members")
 async def members_get(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/members')
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("members.html", template_args)
 
 
 @api_router.get("/database")
 async def database_get(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/database')
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("database.html", template_args)
 
 
@@ -372,19 +358,13 @@ async def schedule_get_all_camps(request: Request, template_args: dict):
 
 @api_router.get("/schedule")
 async def schedule_get(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/schedule')
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return await schedule_get_all_camps(request, template_args)
 
 
 @api_router.post("/schedule")
 async def schedule_post_new_camp(request: Request, camp_program_id: int = Form(), camp_instructor_id: int = Form()):
-    auth_response = check_auth(request=request, permission_url_path='/schedule')
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     new_camp = Camp(db = app.db, program_id = camp_program_id)
     new_camp.add_instructor(db = app.db, user_id = camp_instructor_id)
     return await schedule_get_all_camps(request, template_args)
@@ -392,19 +372,15 @@ async def schedule_post_new_camp(request: Request, camp_program_id: int = Form()
 
 @api_router.delete("/schedule/{camp_id}")
 async def camp_delete(request: Request, camp_id: int):
-    if check_auth(request=request, permission_url_path='/schedule') is None:
-        load_all_camps(db = app.db, camps = app.camps)
-        camp = app.camps.pop(camp_id)
-        if camp is not None:
-            camp.delete(db = app.db)
+    load_all_camps(db = app.db, camps = app.camps)
+    camp = app.camps.pop(camp_id)
+    if camp is not None:
+        camp.delete(db = app.db)
 
 
 @api_router.get("/instructor/{user_id}")
 async def instructor_get_one(request: Request, user_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/camps') # a user that has permission to camps should be able to see instructors
-    if auth_response is not None:
-        return auth_response
-    template_args = await build_base_html_args(request)
+    template_args = build_base_html_args(request)
     return templates.TemplateResponse("instructor.html", template_args)
 
 
