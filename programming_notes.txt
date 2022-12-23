@@ -32,6 +32,7 @@ Resources:
 	https://realpython.com/flask-google-login/
 	https://github.com/encode/starlette/blob/master/starlette/requests.py
 	https://www.uvicorn.org/deployment/#running-with-https
+	https://fastapi.tiangolo.com/tutorial/body-updates/#partial-updates-with-patch
 
 
 Setup for running securely (dev only):

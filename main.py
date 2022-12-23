@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from oauthlib.oauth2 import WebApplicationClient
 from user import User, load_all_roles, load_all_users_by_role
-from student import Student
+from student import StudentData, Student
 from program import Program, Level, GradeLevel
 from camp import Camp, load_camps_table
 from datetime import date
@@ -154,93 +154,44 @@ async def camps_get(request: Request):
     return templates.TemplateResponse("camps.html", template_args)
 
 
-async def students_get(request: Request, selected_id = None):
+@api_router.get("/students")
+async def get_students_page(request: Request):
     template_args = await build_base_html_args(request)
     student_names = {}
-    current_student = None
     if app.user is not None:
         app.user.load_students(db = app.db)
-        current_student = app.user.students.get(selected_id)
         for student_id, student in app.user.students.items():
             student_names[student_id] = student.name
     template_args['student_names'] = student_names
-    template_args['current_student'] = current_student
     return templates.TemplateResponse("students.html", template_args)
 
+@api_router.get("/students/{student_id}", response_model=StudentData)
+async def get_one_student(student_id: int):
+    return app.user.students.get(student_id)
 
-@api_router.get("/students")
-async def students_get_all(request: Request):
-    auth_response = check_auth(request=request, permission_url_path='/students')
-    if auth_response is not None:
-        return auth_response
-    return await students_get(request=request, selected_id=None)
+@api_router.put("/students/{student_id}", response_model = StudentData)
+async def put_update_student(student_id: int, updated_student: StudentData):
+    student = app.user.students.get(student_id).copy(update=updated_student.dict())
+    await student.update_basic(app.db)
+    app.user.students[student_id] = student
+    return student
 
-
-@api_router.get("/students/{student_id}")
-async def students_get_one(request: Request, student_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/students')
-    if auth_response is not None:
-        return auth_response
-    return await students_get(request=request, selected_id=student_id)
-
-
-@api_router.post("/students")
-async def student_post_new(request: Request, student_name: str = Form(), student_birthdate: date = Form(), student_grade_level: int = Form()):
-    auth_response = check_auth(request=request, permission_url_path='/students')
-    if auth_response is not None:
-        return auth_response
-    app.user.load_students(db = app.db)
+@api_router.post("/students", response_model = StudentData)
+async def post_new_student(new_student_data: StudentData):
+    # TODO: there's got to be a slicker way to do this
     new_student = Student(
         db = app.db,
         id = None,
-        name = student_name,
-        birthdate = student_birthdate,
-        grade_level = GradeLevel(student_grade_level)
+        name = new_student_data.name,
+        birthdate = new_student_data.birthdate,
+        grade_level = new_student_data.grade_level
     )
-    app.user.add_student(db = app.db, student_id = new_student.id)
-    student_id = new_student.id
-    return await students_get(request=request, selected_id=student_id)
-
-
-@api_router.post("/students/{student_id}")
-async def student_post_update(request: Request, student_id: int):
-    auth_response = check_auth(request=request, permission_url_path='/students')
-    if auth_response is not None:
-        return auth_response
-    app.user.load_students(db = app.db)
-    student = app.user.students.get(student_id)
-    if student is not None:
-        form = await request.form()
-        student.update_basic(
-            db = app.db,
-            name = form.get('student_name'),
-            birthdate = form.get('student_birthdate'),
-            grade_level = form.get('student_grade_level')
-        )
-    return await students_get(request=request, selected_id=student_id)
-
-@api_router.put("/students/{student_id}")
-async def student_put_update(student_id: int, form: dict):
-    auth_response = check_auth(request=request, permission_url_path='/students')
-    if auth_response is not None:
-        return auth_response
-    app.user.load_students(db = app.db)
-    student = app.user.students.get(student_id)
-    print(form)
-    if student is not None:
-        student.update_basic(
-            db = app.db,
-            name = form.get('student_name'),
-            birthdate = form.get('student_birthdate'),
-            grade_level = form.get('student_grade_level')
-        )
-    return None
-
+    app.user.add_student(db = app.db, student = new_student)
+    return new_student
 
 @api_router.delete("/students/{student_id}")
-async def student_delete(request: Request, student_id: int):
-    if check_auth(request=request, permission_url_path='/students') is None:
-        app.user.remove_student(db = app.db, student_id = student_id)
+async def delete_student(student_id: int):
+    app.user.remove_student(db = app.db, student_id = student_id)
 
 
 @api_router.get("/teach")

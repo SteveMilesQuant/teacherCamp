@@ -1,96 +1,164 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <span class='sidebar'>
+  <span class='sidebar' id='sidebar'>
     <div class='sidebar-title'><h1><a class='selectable' href='/students'>My Students</a></h1></div>
     <hr class='h-divider'></hr>
     {% for id, name in student_names.items() %}
-      <div class='sidebar-item menu-font'><a class='selectable' href="/students/{{id}}">{{name}}</a></div>
+      <div class='sidebar-item menu-font selectable' onclick='getStudent({{id}});' id='student-sidebar-{{id}}'>{{name}}</div>
     {% endfor %}
-    <div class='sidebar-item'><button class='selectable menu-font' onclick="unhideElem('student-form')">+ Add Student</button></div>
+    <div class='sidebar-item'><button class='selectable menu-font' onclick="unhide('new-student')">+ Add Student</button></div>
   </span>
-  {% if current_student is not none %}
-    <span class='content-body'>
-      <div class='content-item'><h1>Student Profile</h1></div>
-      <hr class='content-item h-divider'></hr>
-      <div class='content-item'>
-        <div id='student-name'>
-          <span><strong>Name:</strong> {{current_student.name}}</span>
-          <span><button class='selectable' onclick="swapHidden('student-name', 'edit-student-name')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
-        </div>
-        <div id='edit-student-name' hidden>
-          <form  method='post' action='/students/{{current_student.id}}'>
-            <label for='student_name'><strong>Name:</strong></label>
-            <input type='text' name='student_name' value="{{current_student.name}}">
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-name', 'student-name')" />
-          </form>
-        </div>
-      </div>
-      <div class='content-item'>
-        <div id='student-birthdate'>
-          <span><strong>Birthdate:</strong> {{current_student.birthdate.strftime("%m/%d/%Y")}}</span>
-          <span><button class='selectable' onclick="swapHidden('student-birthdate', 'edit-student-birthdate')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
-        </div>
-        <div id='edit-student-birthdate' hidden>
-          <form  method='post' action='/students/{{current_student.id}}'>
-            <label for='student_birthdate'><strong>Birthdate:</strong></label>
-            <input type='date' name='student_birthdate' value="{{current_student.birthdate}}">
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-birthdate', 'student-birthdate')" />
-          </form>
-        </div>
-      </div>
-      <div class='content-item'>
-        <div id='student-gradelevel'>
-          <span><strong>Current grade level:</strong> {{current_student.grade_level.html_display()}}</span>
-          <span><button class='selectable' onclick="swapHidden('student-gradelevel', 'edit-student-gradelevel')"><img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/></button></span>
-        </div>
-        <div id='edit-student-gradelevel' hidden>
-          <form  method='post' action='/students/{{current_student.id}}'>
-            <label for='student_grade_level'><strong>Current grade level:</strong></label>
-            <select class='form-item' type='select' name='student_grade_level' required>
-              {% for grade in grade_levels %}
-                <option value="{{grade.value}}" {% if grade.value == current_student.grade_level.value %}selected{% endif %}>{{grade.html_display()}}</option>
-              {% endfor %}
-            </select>
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-            <input type="image" class='small-button selectable' src="{{ url_for('images', path='/cancel.png') }}" border="0" alt="Cancel" onclick="swapHidden('edit-student-gradelevel', 'student-gradelevel')" />
-          </form>
-        </div>
-      </div>
-      <div class='content-item'>
-        <button class='selectable' onclick="if (confirm('Are you sure you want to delete student &quot;{{current_student.name}}&quot;?')) { deleteResource('/students/{{current_student.id}}'); redirect('/students'); }">
-          <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
-          <span><strong>Delete Student</strong></span>
-        </button>
-      </div>
-    </span>
-    <div class="v-divider"></div>
-    <span class='content-body'>
-      <div class='content-item'><h1>Enrolled Camps</h1></div>
-      <hr class='content-item h-divider'></hr>
-    </span>
-  {% endif %}
-  <div class='pop-up' id='student-form' hidden>
+  <span class='content-body' id='content-body-1' hidden>
+    <div class='content-item'><h1>
+      <span>Student Profile</span>
+      <span><button class='selectable' id='student-edit' onclick='edit("student-name"); edit("student-birthdate"); edit("student-grade"); hide("student-edit"); unhide("student-submit"); unhide("student-cancel"); hide("student-delete");'>
+        <img class='small-button' src="{{ url_for('images', path='/pencil.png') }}" alt='Edit'/>
+      </button></span>
+      <span><button class='selectable' id='student-submit' onclick='putStudent(student_id); unhide("student-edit"); hide("student-submit"); hide("student-cancel"); unhide("student-delete");' hidden>
+        <img class='small-button' src="{{ url_for('images', path='/confirm.png') }}" alt='Submit'/>
+      </button></span>
+      <span><button class='selectable' id='student-cancel' onclick='getStudent(student_id); unhide("student-edit"); hide("student-submit"); hide("student-cancel"); unhide("student-delete");' hidden>
+        <img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/>
+      </button></span>
+    </h1></div>
+    <hr class='content-item h-divider'></hr>
+    <div class='content-item'>
+      <span><strong>Name: </strong><span id='student-name'></span></span>
+    </div>
+    <div class='content-item'>
+      <span><strong>Birthdate: </strong><input type='date' id='student-birthdate'></span>
+    </div>
+    <div class='content-item'>
+      <span>
+        <strong>Current grade level: </strong>
+        <select type='select' id='student-grade'>
+          <option value="0">K</option>
+          {% for grade in range(1,13) %}
+            <option value="{{grade}}">{{grade}}</option>
+          {% endfor %}
+        </select>
+      </span>
+    </div>
+    <div class='content-item' id='student-delete'>
+      <button class='selectable' onclick="if (confirm('Are you sure you want to delete this student?')) { deleteStudent(student_id); }">
+        <span><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Delete'/></span>
+        <span><strong>Delete Student</strong></span>
+      </button>
+    </div>
+  </span>
+  <div class="v-divider" id='content-body-2' hidden></div>
+  <span class='content-body' id='content-body-3' hidden>
+    <div class='content-item'><h1>Enrolled Camps</h1></div>
+    <hr class='content-item h-divider'></hr>
+  </span>
+  <div class='pop-up' id='new-student' hidden>
     <div class='pop-up-item'>
       <h1>New Student</h1>
-      <form method='post' action='/students'>
-        <label class='form-item' for='student_name'><strong>Name:</strong></label><br>
-        <input class='form-item form-input-text' type='text' name='student_name' required><br>
-        <label class='form-item' for='student_birthdate'><strong>Birthdate:</strong></label><br>
-        <input class='form-item' type='date' name='student_birthdate' required><br>
-        <label class='form-item' for='student_grade_level'><strong>Current grade level:</strong></label><br>
-        <select class='form-item' type='select' name='student_grade_level' required>
-          {% for grade in grade_levels %}
-            <option value="{{grade.value}}" {% if grade.value == 6 %}selected{% endif %}>{{grade.html_display()}}</option>
-          {% endfor %}
-        </select><br>
-        <input class='form-item small-button selectable' type="image" src="{{ url_for('images', path='/confirm.png') }}" border="0" alt="Submit" />
-        <a class='form-item selectable' href='/students'><img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/></a>
-      </form>
+      <hr class='h-divider'></hr>
+    </div>
+    <div class='pop-up-item'>
+      <div class='pop-up-subitem'><strong >Name:</strong></div>
+      <div class='pop-up-subitem pop-up-text'contenteditable='true' id='new-student-name'></div>
+      <div class='pop-up-subitem'><strong>Birthdate:</strong></div>
+      <div class='pop-up-subitem'><input type='date' id='new-student-birthdate'></div>
+      <div class='pop-up-subitem'><strong>Current grade level:</strong></div>
+      <div class='pop-up-subitem'><select type='select' id='new-student-grade'>
+        <option value="0">K</option>
+        {% for grade in range(1,13) %}
+          <option value="{{grade}}" {% if grade == 6 %} selected {% endif %}>{{grade}}</option>
+        {% endfor %}
+      </select></div>
+      <div class='pop-up-subitem'>
+        <span><button class='selectable' onclick='postStudent(); hide("new-student"); resetNewStudent();'>
+          <img class='small-button' src="{{ url_for('images', path='/confirm.png') }}" alt='Submit'/>
+        </button></span>
+        <span><button class='selectable' onclick='hide("new-student"); resetNewStudent();'>
+          <img class='small-button' src="{{ url_for('images', path='/cancel.png') }}" alt='Cancel'/>
+        </button></span>
+      </div>
     </div>
   </div>
 {% endblock %}
 
+{% block script %}
+  class Student {
+    constructor(id, name, birthdate, gradeLevel) {
+      this.id = id;
+      this.name = name;
+      this.birthdate = birthdate;
+      this.grade_level = gradeLevel;
+    }
+  }
+  student_id = null;
+
+  function displayStudent(student) {
+    unhide("content-body-1");
+    unhide("content-body-2");
+    unhide("content-body-3");
+
+    studentName = document.getElementById('student-name');
+    studentName.innerHTML = student.name;
+    studentName.contentEditable = false;
+
+    studentNameSidebar = document.getElementById('student-sidebar-' + student.id);
+    studentNameSidebar.innerHTML = student.name;
+
+    studentBirthdate = document.getElementById('student-birthdate');
+    studentBirthdate.value = student.birthdate;
+    studentBirthdate.readOnly = true;
+
+    studentGrade = document.getElementById('student-grade');
+    studentGrade.selectedIndex = student.grade_level;
+    studentGrade.disabled = true;
+  }
+
+  function resetNewStudent() {
+    document.getElementById('new-student-name').innerHTML = "";
+    document.getElementById('new-student-birthdate').value = "";
+    document.getElementById('new-student-grade').selectedIndex = 6;
+  }
+
+  function getStudent(id) {
+    student_id = id;
+    http.get('/students', id).then((student) => {displayStudent(student);});
+  }
+
+  function postStudent() {
+    studentName = document.getElementById('new-student-name').innerHTML;
+    studentBirthdate = document.getElementById('new-student-birthdate').value;
+    studentGrade = document.getElementById('new-student-grade').selectedIndex;
+    student = new Student(null, studentName, studentBirthdate, studentGrade);
+    if (studentName != "" && studentBirthdate != "") {
+      http.post('/students', student).then((returnedStudent) => {
+        // Add to sidebar
+        sidebar = document.getElementById('sidebar');
+        newDiv = document.createElement('div');
+        newDiv.classList.add('sidebar-item');
+        newDiv.classList.add('menu-font');
+        newDiv.classList.add('selectable');
+        newDiv.id = 'student-sidebar-' + returnedStudent.id;
+        newDiv.onclick = 'getStudent(' + returnedStudent.id + '); unhide("content-body-1"); unhide("content-body-2"); unhide("content-body-3");';
+        newDiv.innerHTML = returnedStudent.name;
+        sidebar.insertBefore(newDiv, sidebar.lastElementChild);
+
+        // Now display this student
+        displayStudent(returnedStudent);
+      });
+    }
+  }
+
+  function putStudent(id) {
+    studentName = document.getElementById('student-name').innerHTML;
+    studentBirthdate = document.getElementById('student-birthdate').value;
+    studentGrade = document.getElementById('student-grade').selectedIndex;
+    student = new Student(id, studentName, studentBirthdate, studentGrade);
+    http.put('/students', id, student).then((returnedStudent) => {displayStudent(returnedStudent);});
+  }
+
+  function deleteStudent(id) {
+    http.delete('/students', id);
+    http.redirect('/students');
+  }
+{% endblock %}
 

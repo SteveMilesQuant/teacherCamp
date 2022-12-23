@@ -262,11 +262,11 @@ class User(BaseModel):
         for student_id in self.students.keys():
             self.students[student_id] = Student(id=student_id, db=db)
 
-    def add_student(self, db: Any, student_id: int):
-        self.students[student_id] = None
+    def add_student(self, db: Any, student: Student):
+        self.students[student.id] = student
         insert_stmt = f'''
             INSERT INTO user_x_students (user_id, student_id)
-                VALUES ({self.id}, "{student_id}");
+                VALUES ({self.id}, "{student.id}");
         '''
         execute_write(db, insert_stmt)
 
