@@ -14,9 +14,9 @@ class ColumnMeta(BaseModel):
 def get_db(app: FastAPI):
     if app.db is None:
         try:
-            app.db = sqlite3.connect('file:{}?mode=rw'.format(pathname2url(app.db_path)))
+            app.db = sqlite3.connect('file:{}?mode=rw'.format(pathname2url(app.db_path)), check_same_thread=False)
         except sqlite3.OperationalError:
-            app.db = sqlite3.connect(app.db_path)
+            app.db = sqlite3.connect(app.db_path, check_same_thread=False)
             with open(os.path.join(os.path.dirname(__file__), 'schema.sql'), encoding='utf-8') as schema_file:
                 app.db.executescript(schema_file.read())
                 app.db.commit()
