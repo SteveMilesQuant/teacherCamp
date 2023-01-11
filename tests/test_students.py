@@ -77,11 +77,14 @@ def test_student_permission():
     for student_json in all_students_json.values():
         max_student_id = max(max_student_id, student_json['id'])
     student = StudentData(id=max_student_id + 1, name='Karen Tester', birthdate=date(1997, 6, 15), grade_level=1)
+    student_error_json = {'detail': f'User does not have permission for student id={student.id}'}
     response = client.get('/students/' + str(student.id))
     assert response.status_code == status.HTTP_403_FORBIDDEN
     student_json = json.loads(json.dumps(student.dict(), indent=4, sort_keys=True, default=str))
     response = client.put('/students/' + str(student.id), json=student_json)
     assert response.status_code == status.HTTP_403_FORBIDDEN
+    returned_json = response.json()
+    assert returned_json == student_error_json
 
 
 # Remove temporary database
